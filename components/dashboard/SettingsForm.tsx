@@ -170,7 +170,7 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>System Notification Channel</label>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            {['email', 'whatsapp', 'both'].map((channel) => (
+            {['email', 'whatsapp', 'both', 'none'].map((channel) => (
               <label 
                 key={channel} 
                 style={{ 
