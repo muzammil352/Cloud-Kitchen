@@ -24,7 +24,7 @@ export default async function MenuPage({ params }: { params: { slug: string } })
     .order('category')
 
   const { data: feedbacks } = await supabase
-    .from('feedbacks')
+    .from('feedback')
     .select('*, customers(name)')
     .eq('kitchen_id', kitchen.kitchen_id)
     .order('created_at', { ascending: false })
