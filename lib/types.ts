@@ -2,6 +2,7 @@ export type Kitchen = {
   kitchen_id: string
   owner_user_id: string
   name: string
+  slug: string | null
   phone: string | null
   email: string
   city: string | null

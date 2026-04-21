@@ -11,7 +11,7 @@ export default async function MenuPage({ params }: { params: { slug: string } })
   const { data: kitchen } = await supabase
     .from('kitchens')
     .select('*')
-    .eq('kitchen_id', params.slug)
+    .eq('slug', params.slug)
     .single()
 
   if (!kitchen) notFound()

@@ -8,9 +8,11 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
     name: kitchen.name || '',
     phone: kitchen.phone || '',
     city: kitchen.city || '',
+    slug: kitchen.slug || '',
     notify_channel: kitchen.settings?.notify_channel || 'email',
     delivery_radius_km: kitchen.settings?.delivery_radius_km || 5
   })
+  const [slugError, setSlugError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
 
@@ -20,6 +22,12 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
     e.preventDefault()
     setIsSubmitting(true)
     setSuccess(false)
+
+    if (formData.slug && !/^[a-z0-9-]+$/.test(formData.slug)) {
+      setSlugError('Only lowercase letters, numbers, and hyphens allowed.')
+      setIsSubmitting(false)
+      return
+    }
 
     // Critical constraint requirement: Merge existing settings safely dropping nothing!
     const updatedSettings = {
@@ -34,6 +42,7 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
         name: formData.name,
         phone: formData.phone,
         city: formData.city,
+        slug: formData.slug || null,
         settings: updatedSettings
       })
       .eq('kitchen_id', kitchen.kitchen_id)
@@ -83,26 +92,56 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label htmlFor="phone" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>Phone Number <span style={{ color: 'var(--destructive)' }}>*</span></label>
-            <input 
-              id="phone" 
-              required 
-              value={formData.phone} 
-              onChange={e => setFormData({...formData, phone: e.target.value})} 
+            <input
+              id="phone"
+              required
+              value={formData.phone}
+              onChange={e => setFormData({...formData, phone: e.target.value})}
               style={{ borderColor: !formData.phone ? '#F59E0B' : 'var(--border)' }}
               placeholder="e.g. 0300 1234567"
             />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label htmlFor="city" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>City <span style={{ color: 'var(--destructive)' }}>*</span></label>
-            <input 
-              id="city" 
-              required 
-              value={formData.city} 
+            <input
+              id="city"
+              required
+              value={formData.city}
               onChange={e => setFormData({...formData, city: e.target.value})}
               style={{ borderColor: !formData.city ? '#F59E0B' : 'var(--border)' }}
               placeholder="e.g. Lahore"
             />
           </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <label htmlFor="slug" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>Your Store URL</label>
+          <div style={{ display: 'flex', alignItems: 'stretch', border: `1px solid ${slugError ? '#dc2626' : 'var(--border)'}`, borderRadius: '10px', overflow: 'hidden', backgroundColor: 'var(--surface)' }}>
+            <span style={{ display: 'flex', alignItems: 'center', padding: '9px 13px', backgroundColor: 'var(--bg-start)', color: 'var(--text-muted)', fontSize: '14px', fontFamily: 'var(--font-ui)', borderRight: '1px solid var(--border)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              cloudkitchen.app/
+            </span>
+            <input
+              id="slug"
+              value={formData.slug}
+              onChange={e => {
+                const val = e.target.value
+                setFormData({ ...formData, slug: val })
+                if (val && !/^[a-z0-9-]+$/.test(val)) {
+                  setSlugError('Only lowercase letters, numbers, and hyphens allowed.')
+                } else {
+                  setSlugError('')
+                }
+              }}
+              placeholder="your-kitchen-name"
+              style={{ flex: 1, border: 'none', borderRadius: 0, boxShadow: 'none', outline: 'none' }}
+            />
+          </div>
+          {slugError && (
+            <p style={{ fontSize: '12px', color: '#dc2626', margin: 0 }}>{slugError}</p>
+          )}
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
+            This is the link you share with customers. Once set, changing it will break existing shared links.
+          </p>
         </div>
       </section>
 
