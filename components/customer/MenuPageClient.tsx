@@ -109,18 +109,18 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
     const supabase = createClient()
 
     const isFullUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(raw)
-    let query = supabase
-      .from('orders')
-      .select('*, order_items(*, menu_items(name))')
-      .eq('kitchen_id', kitchen.kitchen_id)
-
-    if (isFullUuid) {
-      query = query.eq('order_id', raw.toLowerCase())
-    } else {
-      query = query.ilike('order_id::text', `${raw.toLowerCase()}%`)
+    if (!isFullUuid) {
+      setTrackLoading(false)
+      setTrackError('Please enter your full Order ID (e.g. b91d44aa-fc34-465e-92f4-668fafc42b83). You can find it in your order confirmation or the tracking link.')
+      return
     }
 
-    const { data, error } = await query.single()
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*, order_items(*, menu_items(name))')
+      .eq('order_id', raw.toLowerCase())
+      .eq('kitchen_id', kitchen.kitchen_id)
+      .single()
     setTrackLoading(false)
     if (error || !data) {
       setTrackError(error ? `Error: ${error.message} (code: ${error.code})` : 'No order found with that ID for this restaurant.')
@@ -648,7 +648,7 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
               value={trackInput}
               onChange={e => { setTrackInput(e.target.value); setTrackError('') }}
               onKeyDown={e => e.key === 'Enter' && handleTrackOrder()}
-              placeholder="e.g. 7A7DDD63..."
+              placeholder="e.g. b91d44aa-fc34-465e-92f4-..."
               style={{ flex: 1, height: '40px', fontFamily: 'var(--font-mono)', fontSize: '13px' }}
             />
             <button
