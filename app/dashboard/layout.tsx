@@ -40,12 +40,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
     }}>
       <style dangerouslySetInnerHTML={{ __html: `
         main {
-          margin-left: 68px;
+          margin-left: 92px;
           transition: margin-left 200ms ease;
         }
 
         aside[data-expanded="true"] + main {
-          margin-left: 220px;
+          margin-left: 244px;
         }
       `}} />
 

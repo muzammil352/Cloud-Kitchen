@@ -81,14 +81,14 @@ export function Sidebar({
       data-expanded={isExpanded}
       style={{
         width: isExpanded ? '220px' : '68px',
-        height: '100vh',
+        height: 'calc(100vh - 24px)',
         position: 'fixed',
-        top: 0,
-        left: 0,
+        top: '12px',
+        left: '12px',
         zIndex: 40,
         backgroundColor: '#FFFFFF',
-        borderRadius: '0 var(--radius-card) var(--radius-card) 0',
-        boxShadow: 'var(--shadow-card)',
+        borderRadius: 'var(--radius-card)',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -99,45 +99,6 @@ export function Sidebar({
         transition: 'width 200ms ease',
       }}
     >
-      {/* Logo: always centred */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        width: '100%',
-        justifyContent: 'center',
-        padding: '0',
-        gap: isExpanded ? '10px' : '0',
-        marginBottom: '28px',
-        transition: 'padding 200ms ease, gap 200ms ease',
-        cursor: 'default',
-      }}>
-        <div style={{
-          width: '38px',
-          height: '38px',
-          backgroundColor: 'var(--bg-start)',
-          borderRadius: '10px',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          flexShrink: 0,
-        }}>
-          <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: '15px', color: 'var(--text-primary)' }}>CK</span>
-        </div>
-
-        <span style={{
-          fontFamily: 'var(--font-ui)',
-          fontWeight: 600,
-          fontSize: '14px',
-          color: 'var(--text-primary)',
-          opacity: isExpanded ? 1 : 0,
-          transition: 'opacity 150ms ease 80ms',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-        }}>
-          Cloud Kitchen
-        </span>
-      </div>
-
       {/* Nav items */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, width: '100%', alignItems: 'center', padding: '0 12px' }}>
         {allowedNavItems.map(item => {

@@ -19,6 +19,16 @@ export default async function TrackPage({
 
   const supabase = createClient()
 
+  const { data: kitchen } = await supabase
+    .from('kitchens')
+    .select('kitchen_id')
+    .eq('slug', params.slug)
+    .single()
+
+  if (!kitchen) {
+    return notFound()
+  }
+
   const { data: order } = await supabase
     .from('orders')
     .select(`
@@ -31,7 +41,7 @@ export default async function TrackPage({
     .eq('order_id', orderId)
     .single()
 
-  if (!order || order.kitchen_id !== params.slug) {
+  if (!order || order.kitchen_id !== kitchen.kitchen_id) {
     return notFound()
   }
 
