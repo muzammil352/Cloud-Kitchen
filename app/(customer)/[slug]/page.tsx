@@ -32,6 +32,19 @@ export default async function MenuPage({ params }: { params: { slug: string } })
 
   const categories = Array.from(new Set((menuItems || []).map(item => item.category)))
 
+  let showDashboardButton = false
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, kitchen_id')
+      .eq('user_id', session.user.id)
+      .single()
+    showDashboardButton =
+      profile?.role === 'owner' &&
+      profile?.kitchen_id === kitchen.kitchen_id
+  }
+
   return (
     <MenuPageClient
       kitchen={kitchen}
@@ -39,6 +52,7 @@ export default async function MenuPage({ params }: { params: { slug: string } })
       feedbacks={(feedbacks || []) as any[]}
       categories={categories}
       slug={params.slug}
+      showDashboardButton={showDashboardButton}
     />
   )
 }

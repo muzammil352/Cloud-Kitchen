@@ -23,6 +23,7 @@ interface Props {
   feedbacks: Feedback[]
   categories: string[]
   slug: string
+  showDashboardButton: boolean
 }
 
 const ORDER_STEPS = ['pending', 'confirmed', 'preparing', 'ready'] as const
@@ -33,7 +34,7 @@ const STEP_LABELS: Record<string, string> = {
   ready: 'Dispatched',
 }
 
-export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug }: Props) {
+export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug, showDashboardButton }: Props) {
   const router = useRouter()
   const { cartItems, itemCount, addToCart, updateQuantity } = useCart()
   const [cartOpen, setCartOpen] = useState(false)
@@ -142,21 +143,23 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
           <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: '16px', color: 'var(--text-primary)', lineHeight: 1.3 }}>{kitchen.name}</span>
         </div>
 
-        <button
-          onClick={() => router.push('/dashboard')}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '8px', height: '38px',
-            borderRadius: '10px', padding: '0 12px', marginBottom: '24px',
-            background: 'var(--bg-start)', border: '1px solid var(--border)',
-            cursor: 'pointer', width: '100%', transition: 'background var(--transition)',
-            flexShrink: 0,
-          }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'var(--border)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-start)')}
-        >
-          <ArrowLeft size={16} strokeWidth={1.5} color="var(--text-secondary)" />
-          <span style={{ fontFamily: 'var(--font-ui)', fontSize: '13px', color: 'var(--text-secondary)' }}>Back to Dashboard</span>
-        </button>
+        {showDashboardButton && (
+          <button
+            onClick={() => router.push('/dashboard')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px', height: '38px',
+              borderRadius: '10px', padding: '0 12px', marginBottom: '24px',
+              background: 'var(--bg-start)', border: '1px solid var(--border)',
+              cursor: 'pointer', width: '100%', transition: 'background var(--transition)',
+              flexShrink: 0,
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--border)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-start)')}
+          >
+            <ArrowLeft size={16} strokeWidth={1.5} color="var(--text-secondary)" />
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: '13px', color: 'var(--text-secondary)' }}>Back to Dashboard</span>
+          </button>
+        )}
 
         <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
           <p style={{ fontFamily: 'var(--font-ui)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: '8px' }}>Menu</p>
