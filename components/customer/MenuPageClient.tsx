@@ -7,7 +7,8 @@ import { useCart } from './CartContext'
 import { CartSheet } from './CartSheet'
 import { MenuItem, Kitchen } from '@/lib/types'
 import { formatCurrency, timeAgo } from '@/lib/utils'
-import { ArrowLeft, ShoppingBag, Search, Heart, Plus, Star, X } from 'lucide-react'
+import { ArrowLeft, ShoppingBag, Search, Heart, Plus, Star, X, Package } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 interface Feedback {
   feedback_id: string
@@ -39,9 +40,14 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
   const { cartItems, itemCount, addToCart, updateQuantity } = useCart()
   const [cartOpen, setCartOpen] = useState(false)
   const [isReviewsOpen, setIsReviewsOpen] = useState(false)
+  const [isTrackOpen, setIsTrackOpen] = useState(false)
   const [reviewText, setReviewText] = useState('')
   const [reviewRating, setReviewRating] = useState(0)
   const [reviewRatingHover, setReviewRatingHover] = useState(0)
+  const [trackInput, setTrackInput] = useState('')
+  const [trackedOrder, setTrackedOrder] = useState<any>(null)
+  const [trackLoading, setTrackLoading] = useState(false)
+  const [trackError, setTrackError] = useState('')
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState(categories[0] || '')
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
@@ -79,8 +85,30 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
     return () => observers.forEach(o => o.disconnect())
   }, [categories])
 
-  const openCart = () => { setCartOpen(true); setIsReviewsOpen(false) }
-  const openReviews = () => { setIsReviewsOpen(true); setCartOpen(false) }
+  const openCart = () => { setCartOpen(true); setIsReviewsOpen(false); setIsTrackOpen(false) }
+  const openReviews = () => { setIsReviewsOpen(true); setCartOpen(false); setIsTrackOpen(false) }
+  const openTrack = () => { setIsTrackOpen(true); setCartOpen(false); setIsReviewsOpen(false) }
+
+  const handleTrackOrder = async () => {
+    const id = trackInput.trim()
+    if (!id) return
+    setTrackLoading(true)
+    setTrackError('')
+    setTrackedOrder(null)
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*, order_items(*, menu_items(name))')
+      .eq('order_id', id)
+      .eq('kitchen_id', kitchen.kitchen_id)
+      .single()
+    setTrackLoading(false)
+    if (error || !data) {
+      setTrackError('No order found with that ID for this restaurant.')
+    } else {
+      setTrackedOrder(data)
+    }
+  }
 
   const toggleFavorite = (itemId: string) => {
     setFavorites(prev => {
@@ -248,6 +276,22 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
               onMouseLeave={e => (e.currentTarget.style.background = 'var(--surface)')}
             >
               <Star size={18} strokeWidth={1.5} color="var(--text-secondary)" />
+            </button>
+
+            {/* Track Order */}
+            <button
+              onClick={openTrack}
+              title="Track Order"
+              style={{
+                width: '40px', height: '40px', borderRadius: '10px',
+                background: 'var(--surface)', border: '1px solid var(--border)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', transition: 'background var(--transition)',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--border)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'var(--surface)')}
+            >
+              <Package size={18} strokeWidth={1.5} color="var(--text-secondary)" />
             </button>
 
             {/* Cart */}
@@ -542,6 +586,150 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
               })
             )}
           </div>
+        </div>
+      </div>
+
+      {/* ─── TRACK ORDER SLIDE-OVER ───────────────────────── */}
+      {isTrackOpen && (
+        <div
+          onClick={() => setIsTrackOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 90 }}
+        />
+      )}
+
+      <div style={{
+        position: 'fixed', right: 0, top: 0, width: '400px', height: '100vh',
+        background: 'var(--surface)', boxShadow: '-4px 0 32px rgba(0,0,0,0.1)',
+        borderRadius: '18px 0 0 18px', zIndex: 100,
+        display: 'flex', flexDirection: 'column',
+        transform: isTrackOpen ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 250ms ease',
+      }}>
+        {/* Header */}
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', color: 'var(--text-primary)', margin: 0 }}>Track Order</h2>
+          <button
+            onClick={() => setIsTrackOpen(false)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: 'var(--text-muted)', transition: 'color var(--transition)', borderRadius: '6px' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+          >
+            <X size={20} strokeWidth={1.5} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+          {/* Search input */}
+          <p style={{ fontFamily: 'var(--font-ui)', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: 1.5 }}>
+            Enter the Order ID you received after placing your order.
+          </p>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+            <input
+              value={trackInput}
+              onChange={e => { setTrackInput(e.target.value); setTrackError('') }}
+              onKeyDown={e => e.key === 'Enter' && handleTrackOrder()}
+              placeholder="e.g. 7A7DDD63..."
+              style={{ flex: 1, height: '40px', fontFamily: 'var(--font-mono)', fontSize: '13px' }}
+            />
+            <button
+              onClick={handleTrackOrder}
+              disabled={trackLoading}
+              className="btn-primary"
+              style={{ height: '40px', padding: '0 18px', fontSize: '13px', flexShrink: 0 }}
+            >
+              {trackLoading ? '...' : 'Find'}
+            </button>
+          </div>
+
+          {/* Error */}
+          {trackError && (
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: '13px', color: '#dc2626', marginBottom: '16px' }}>{trackError}</p>
+          )}
+
+          {/* Result */}
+          {trackedOrder && (() => {
+            const STATUS_STEPS = ['pending', 'confirmed', 'preparing', 'ready', 'dispatched', 'out_for_delivery', 'delivered']
+            const STATUS_LABELS: Record<string, string> = {
+              pending: 'Received', confirmed: 'Confirmed', preparing: 'Preparing',
+              ready: 'Ready', dispatched: 'Dispatched', out_for_delivery: 'Out for Delivery', delivered: 'Delivered',
+            }
+            const currentIdx = STATUS_STEPS.indexOf(trackedOrder.status)
+            const isCancelled = trackedOrder.status === 'cancelled'
+
+            return (
+              <div>
+                {/* Order ID + status badge */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--text-muted)' }}>
+                    #{trackedOrder.order_id.substring(0, 8).toUpperCase()}
+                  </span>
+                  <span style={{
+                    fontFamily: 'var(--font-ui)', fontSize: '12px', fontWeight: 600,
+                    padding: '4px 10px', borderRadius: '100px',
+                    background: isCancelled ? '#fee2e2' : 'var(--accent-surface)',
+                    color: isCancelled ? '#dc2626' : 'var(--accent)',
+                  }}>
+                    {STATUS_LABELS[trackedOrder.status] || trackedOrder.status}
+                  </span>
+                </div>
+
+                {/* Progress steps */}
+                {!isCancelled && (
+                  <div style={{ marginBottom: '24px' }}>
+                    {STATUS_STEPS.filter(s => s !== 'cancelled').map((step, idx) => {
+                      const done = idx <= currentIdx
+                      const isNow = idx === currentIdx
+                      return (
+                        <div key={step} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: idx < STATUS_STEPS.length - 2 ? '4px' : '0' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                            <div style={{
+                              width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
+                              background: done ? 'var(--accent)' : 'var(--border)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              boxShadow: isNow ? '0 0 0 3px var(--accent-surface)' : 'none',
+                              transition: 'background 300ms',
+                            }}>
+                              {done && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'white' }} />}
+                            </div>
+                            {idx < STATUS_STEPS.length - 2 && (
+                              <div style={{ width: '2px', height: '20px', background: done ? 'var(--accent)' : 'var(--border)', transition: 'background 300ms' }} />
+                            )}
+                          </div>
+                          <span style={{
+                            fontFamily: 'var(--font-ui)', fontSize: '13px', paddingTop: '2px',
+                            fontWeight: isNow ? 600 : 400,
+                            color: done ? 'var(--text-primary)' : 'var(--text-muted)',
+                          }}>
+                            {STATUS_LABELS[step]}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* Order items */}
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                  <p style={{ fontFamily: 'var(--font-ui)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: '10px' }}>Items</p>
+                  {(trackedOrder.order_items || []).map((oi: any) => (
+                    <div key={oi.order_item_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0' }}>
+                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: '13px', color: 'var(--text-primary)' }}>
+                        {oi.quantity}× {oi.menu_items?.name}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--text-muted)' }}>
+                        {formatCurrency(oi.unit_price * oi.quantity)}
+                      </span>
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', marginTop: '8px', paddingTop: '8px' }}>
+                    <span style={{ fontFamily: 'var(--font-ui)', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>Total</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{formatCurrency(trackedOrder.total_amount)}</span>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
         </div>
       </div>
 
