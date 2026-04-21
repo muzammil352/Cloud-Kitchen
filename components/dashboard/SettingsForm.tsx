@@ -9,6 +9,7 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
     phone: kitchen.phone || '',
     city: kitchen.city || '',
     slug: kitchen.slug || '',
+    welcome_banner: kitchen.welcome_banner || '',
     notify_channel: kitchen.settings?.notify_channel || 'email',
     delivery_radius_km: kitchen.settings?.delivery_radius_km || 5
   })
@@ -43,6 +44,7 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
         phone: formData.phone,
         city: formData.city,
         slug: formData.slug || null,
+        welcome_banner: formData.welcome_banner || null,
         settings: updatedSettings
       })
       .eq('kitchen_id', kitchen.kitchen_id)
@@ -141,6 +143,19 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
           )}
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
             This is the link you share with customers. Once set, changing it will break existing shared links.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <label htmlFor="welcome_banner" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>Storefront greeting (shown to customers)</label>
+          <input
+            id="welcome_banner"
+            value={formData.welcome_banner}
+            onChange={e => setFormData({ ...formData, welcome_banner: e.target.value })}
+            placeholder="Welcome to Burger Hub!"
+          />
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
+            Shown as a hero greeting on your customer storefront. Defaults to "Welcome to {formData.name || 'your kitchen'}!" if left blank.
           </p>
         </div>
       </section>

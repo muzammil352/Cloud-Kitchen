@@ -111,25 +111,6 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
     ? categories.filter(cat => filteredItems.some(i => i.category === cat))
     : categories
 
-  const darkPillStyle: React.CSSProperties = {
-    background: 'var(--btn-dark)',
-    color: 'white',
-    borderRadius: '100px',
-    height: '42px',
-    padding: '0 20px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    fontSize: '14px',
-    fontFamily: 'var(--font-ui)',
-    fontWeight: 500,
-    border: 'none',
-    boxShadow: '0 2px 8px rgba(26,24,32,0.25)',
-    cursor: 'pointer',
-    flexShrink: 0,
-    transition: 'opacity var(--transition)',
-  }
-
   return (
     <div style={{
       width: '100vw',
@@ -219,14 +200,17 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
       {/* ─── PANEL 2: MAIN CONTENT ─────────────────────────── */}
       <main
         ref={mainRef}
-        style={{ flex: 1, overflowY: 'auto', padding: '24px 24px 48px', minWidth: 0 }}
+        style={{ flex: 1, overflowY: 'auto', padding: '0 24px 48px', minWidth: 0 }}
       >
-        {/* Top bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', gap: '16px' }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '28px', color: 'var(--text-primary)', margin: 0, flexShrink: 0 }}>
-            {search.trim() ? 'Search Results' : (activeCategory || 'Full Menu')}
-          </h1>
-
+        {/* Row 1 — Utility bar (sticky) */}
+        <div style={{
+          position: 'sticky', top: 0, zIndex: 10,
+          background: 'linear-gradient(135deg, var(--bg-start), var(--bg-end))',
+          borderBottom: '1px solid var(--border)',
+          padding: '12px 0',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px',
+        }}>
+          {/* Search */}
           <div style={{ position: 'relative', width: '280px', flexShrink: 0 }}>
             <div style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
               <Search size={16} strokeWidth={1.5} color="var(--text-muted)" />
@@ -245,41 +229,66 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
             />
           </div>
 
-          {/* Two action buttons */}
-          <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
-            {/* Reviews button */}
+          {/* Icon buttons */}
+          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+            {/* Reviews */}
             <button
               onClick={openReviews}
-              style={darkPillStyle}
-              onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
-              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+              title="Reviews"
+              style={{
+                width: '40px', height: '40px', borderRadius: '10px',
+                background: 'var(--surface)', border: '1px solid var(--border)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', transition: 'background var(--transition)',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--border)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'var(--surface)')}
             >
-              <Star size={18} strokeWidth={1.5} color="white" />
-              <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.25)', flexShrink: 0 }} />
-              <span>Reviews</span>
+              <Star size={18} strokeWidth={1.5} color="var(--text-secondary)" />
             </button>
 
-            {/* View Cart button */}
+            {/* Cart */}
             <button
               onClick={openCart}
-              style={darkPillStyle}
+              title="View Cart"
+              style={{
+                width: '40px', height: '40px', borderRadius: '10px',
+                background: 'var(--accent)', border: 'none',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', position: 'relative', transition: 'opacity var(--transition)',
+              }}
               onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
               onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
             >
               <ShoppingBag size={18} strokeWidth={1.5} color="white" />
-              <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.25)', flexShrink: 0 }} />
-              <span>View Cart</span>
-              <div style={{
-                width: '18px', height: '18px',
-                background: 'var(--accent)', borderRadius: '50%',
-                fontSize: '11px', fontFamily: 'var(--font-ui)', fontWeight: 600,
-                color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0,
-              }}>
-                {itemCount}
-              </div>
+              {itemCount > 0 && (
+                <div style={{
+                  position: 'absolute', top: '-6px', right: '-6px',
+                  width: '18px', height: '18px',
+                  background: '#1A1820', borderRadius: '50%',
+                  fontSize: '11px', fontFamily: 'var(--font-ui)', fontWeight: 700,
+                  color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {itemCount}
+                </div>
+              )}
             </button>
           </div>
+        </div>
+
+        {/* Row 2 — Welcome banner */}
+        <div style={{ padding: '24px 0 20px' }}>
+          <h1 style={{
+            fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 700,
+            color: 'var(--text-primary)', margin: 0, lineHeight: 1.2,
+          }}>
+            {kitchen.welcome_banner || `Welcome to ${kitchen.name}!`}
+          </h1>
+          {search.trim() && (
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
+              Showing results for &ldquo;{search}&rdquo;
+            </p>
+          )}
         </div>
 
         {/* Menu sections */}

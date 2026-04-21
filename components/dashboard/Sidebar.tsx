@@ -99,13 +99,13 @@ export function Sidebar({
         transition: 'width 200ms ease',
       }}
     >
-      {/* FIX 2 — Logo mark: centered when collapsed, left-aligned when expanded */}
+      {/* Logo: always centred */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         width: '100%',
-        justifyContent: isExpanded ? 'flex-start' : 'center',
-        padding: isExpanded ? '0 14px' : '0',
+        justifyContent: 'center',
+        padding: '0',
         gap: isExpanded ? '10px' : '0',
         marginBottom: '28px',
         transition: 'padding 200ms ease, gap 200ms ease',
@@ -228,54 +228,8 @@ export function Sidebar({
         })}
       </nav>
 
-      {/* Bottom: logout + avatar */}
+      {/* Bottom: avatar only */}
       <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0, width: '100%', padding: '0 12px' }}>
-        <button
-          onClick={handleLogout}
-          title={isExpanded ? '' : 'Logout'}
-          style={{
-            width: isExpanded ? '100%' : '44px',
-            height: '44px',
-            borderRadius: '12px',
-            flexShrink: 0,
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: isExpanded ? 'flex-start' : 'center',
-            alignItems: 'center',
-            padding: isExpanded ? '0 14px' : '0',
-            gap: isExpanded ? '12px' : '0',
-            backgroundColor: 'transparent',
-            color: 'var(--text-muted)',
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'width 200ms ease, padding 200ms ease, gap 200ms ease, background-color var(--transition), color var(--transition)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--border)'
-            e.currentTarget.style.color = 'var(--text-secondary)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent'
-            e.currentTarget.style.color = 'var(--text-muted)'
-          }}
-        >
-          <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', width: '20px' }}>
-            <LogOut size={20} strokeWidth={1.5} />
-          </div>
-          <span style={{
-            fontFamily: 'var(--font-ui)',
-            fontWeight: 500,
-            fontSize: '13px',
-            color: 'inherit',
-            opacity: isExpanded ? 1 : 0,
-            width: isExpanded ? 'auto' : '0px',
-            transition: 'opacity 150ms ease 80ms, width 200ms ease',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-          }}>
-            Logout
-          </span>
-        </button>
 
         {/* FIX 4 — Clickable avatar with dropdown */}
         <div ref={avatarMenuRef} style={{ position: 'relative', width: '100%', marginBottom: '8px' }}>
