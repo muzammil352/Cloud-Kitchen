@@ -95,7 +95,10 @@ export function CartSheet({
       // Step 6: Clear cart from localStorage (and context)
       clearCart()
 
-      // Step 7: Redirect to tracking page
+      // Step 7: Save order ID so track panel can pre-populate it
+      localStorage.setItem(`last_order_${slug}`, JSON.stringify({ orderId: newOrder.order_id, status: 'pending' }))
+
+      // Step 8: Redirect to tracking page
       router.push(`/${slug}/track?order_id=${newOrder.order_id}`)
     } catch (err: any) {
       setError(err.message || 'Failed to place order.')

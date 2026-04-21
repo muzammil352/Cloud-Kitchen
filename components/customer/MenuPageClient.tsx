@@ -87,21 +87,40 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
 
   const openCart = () => { setCartOpen(true); setIsReviewsOpen(false); setIsTrackOpen(false) }
   const openReviews = () => { setIsReviewsOpen(true); setCartOpen(false); setIsTrackOpen(false) }
-  const openTrack = () => { setIsTrackOpen(true); setCartOpen(false); setIsReviewsOpen(false) }
+  const openTrack = () => {
+    setIsTrackOpen(true); setCartOpen(false); setIsReviewsOpen(false)
+    if (!trackInput) {
+      try {
+        const stored = localStorage.getItem(`last_order_${slug}`)
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          if (parsed?.orderId) setTrackInput(parsed.orderId)
+        }
+      } catch {}
+    }
+  }
 
   const handleTrackOrder = async () => {
-    const id = trackInput.trim().toLowerCase()
-    if (!id) return
+    const raw = trackInput.trim()
+    if (!raw) return
     setTrackLoading(true)
     setTrackError('')
     setTrackedOrder(null)
     const supabase = createClient()
-    const { data, error } = await supabase
+
+    const isFullUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(raw)
+    let query = supabase
       .from('orders')
       .select('*, order_items(*, menu_items(name))')
-      .filter('order_id::text', 'ilike', `${id}%`)
       .eq('kitchen_id', kitchen.kitchen_id)
-      .single()
+
+    if (isFullUuid) {
+      query = query.eq('order_id', raw.toLowerCase())
+    } else {
+      query = query.ilike('order_id::text', `${raw.toLowerCase()}%`)
+    }
+
+    const { data, error } = await query.single()
     setTrackLoading(false)
     if (error || !data) {
       setTrackError('No order found with that ID for this restaurant.')
