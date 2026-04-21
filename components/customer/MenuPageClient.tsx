@@ -109,21 +109,32 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
     const supabase = createClient()
 
     const isFullUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(raw)
-    if (!isFullUuid) {
-      setTrackLoading(false)
-      setTrackError('Please enter your full Order ID (e.g. b91d44aa-fc34-465e-92f4-668fafc42b83). You can find it in your order confirmation or the tracking link.')
-      return
+
+    let orderId: string | null = null
+
+    if (isFullUuid) {
+      orderId = raw.toLowerCase()
+    } else {
+      // Use RPC to prefix-search by short ID
+      const { data: rpcData, error: rpcError } = await supabase
+        .rpc('find_order_by_prefix', { p_prefix: raw.toLowerCase(), p_kitchen_id: kitchen.kitchen_id })
+      if (rpcError || !rpcData?.length) {
+        setTrackLoading(false)
+        setTrackError('No order found with that ID for this restaurant.')
+        return
+      }
+      orderId = rpcData[0].order_id
     }
 
     const { data, error } = await supabase
       .from('orders')
       .select('*, order_items(*, menu_items(name))')
-      .eq('order_id', raw.toLowerCase())
+      .eq('order_id', orderId)
       .eq('kitchen_id', kitchen.kitchen_id)
       .single()
     setTrackLoading(false)
     if (error || !data) {
-      setTrackError(error ? `Error: ${error.message} (code: ${error.code})` : 'No order found with that ID for this restaurant.')
+      setTrackError('No order found with that ID for this restaurant.')
     } else {
       setTrackedOrder(data)
     }
@@ -648,7 +659,7 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
               value={trackInput}
               onChange={e => { setTrackInput(e.target.value); setTrackError('') }}
               onKeyDown={e => e.key === 'Enter' && handleTrackOrder()}
-              placeholder="e.g. b91d44aa-fc34-465e-92f4-..."
+              placeholder="e.g. B91D44AA"
               style={{ flex: 1, height: '40px', fontFamily: 'var(--font-mono)', fontSize: '13px' }}
             />
             <button
