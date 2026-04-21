@@ -90,7 +90,7 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
   const openTrack = () => { setIsTrackOpen(true); setCartOpen(false); setIsReviewsOpen(false) }
 
   const handleTrackOrder = async () => {
-    const id = trackInput.trim()
+    const id = trackInput.trim().toLowerCase()
     if (!id) return
     setTrackLoading(true)
     setTrackError('')
@@ -99,7 +99,7 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
     const { data, error } = await supabase
       .from('orders')
       .select('*, order_items(*, menu_items(name))')
-      .eq('order_id', id)
+      .filter('order_id::text', 'ilike', `${id}%`)
       .eq('kitchen_id', kitchen.kitchen_id)
       .single()
     setTrackLoading(false)
