@@ -123,7 +123,7 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
     const { data, error } = await query.single()
     setTrackLoading(false)
     if (error || !data) {
-      setTrackError('No order found with that ID for this restaurant.')
+      setTrackError(error ? `Error: ${error.message} (code: ${error.code})` : 'No order found with that ID for this restaurant.')
     } else {
       setTrackedOrder(data)
     }
