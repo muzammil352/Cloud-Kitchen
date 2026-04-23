@@ -81,6 +81,7 @@ export default async function DashboardOverview() {
 
   return (
     <div style={{ opacity: 0, animation: 'fadeIn 300ms forwards' }}>
+      <style>{`.dash-link:hover { text-decoration: underline; }`}</style>
 
       {/* Page header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
@@ -137,9 +138,7 @@ export default async function DashboardOverview() {
         <div className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)' }}>
             <h2 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '15px', color: 'var(--color-ink)' }}>Recent Orders</h2>
-            <a href="/dashboard/orders" style={{ fontSize: '13px', color: 'var(--color-accent)', textDecoration: 'none', fontWeight: 500 }}
-              onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
-              onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}>
+            <a href="/dashboard/orders" className="dash-link" style={{ fontSize: '13px', color: 'var(--color-accent)', textDecoration: 'none', fontWeight: 500 }}>
               View all orders →
             </a>
           </div>
