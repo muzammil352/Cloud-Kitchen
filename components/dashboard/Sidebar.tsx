@@ -23,11 +23,13 @@ export function Sidebar({
   userName,
   role,
   kitchenSlug,
+  kitchenId,
 }: {
   userEmail: string
   userName?: string
   role: string
   kitchenSlug?: string
+  kitchenId?: string
 }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -44,15 +46,16 @@ export function Sidebar({
 
   useEffect(() => {
     const fetchApprovals = async () => {
-      if (role !== 'owner') return
+      if (role !== 'owner' || !kitchenId) return
       const { count } = await supabase
         .from('notifications_log')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending')
+        .eq('kitchen_id', kitchenId)
       if (count !== null) setPendingApprovals(count)
     }
     fetchApprovals()
-  }, [supabase, role])
+  }, [supabase, role, kitchenId])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

@@ -33,12 +33,12 @@ export default async function MenuPage({ params }: { params: { slug: string } })
   const categories = Array.from(new Set((menuItems || []).map(item => item.category)))
 
   let showDashboardButton = false
-  const { data: { session } } = await supabase.auth.getSession()
-  if (session) {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role, kitchen_id')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single()
     showDashboardButton =
       profile?.role === 'owner' &&

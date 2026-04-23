@@ -54,6 +54,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         userName={displayName}
         role={profile.role}
         kitchenSlug={kitchen?.slug || ''}
+        kitchenId={kitchen?.kitchen_id || ''}
       />
 
       <main style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 0 }}>

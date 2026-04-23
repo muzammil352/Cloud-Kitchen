@@ -1,35 +1,55 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { z } from 'zod'
+
+const ApproveSchema = z.object({
+  token: z.string().uuid(),
+})
 
 export async function POST(req: Request) {
   try {
-    const { token } = await req.json()
-    if (!token) {
-      return NextResponse.json({ error: 'Missing validation token' }, { status: 400 })
+    // Require authenticated owner
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single()
+    if (profile?.role !== 'owner') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const n8nUrl = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL
+    const body = await req.json()
+    const parsed = ApproveSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid token format' }, { status: 400 })
+    }
+    const { token } = parsed.data
+
+    const n8nUrl = process.env.N8N_WEBHOOK_URL
     if (!n8nUrl) {
-      return NextResponse.json({ error: 'System webhook route undefined locally' }, { status: 500 })
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
     }
 
-    // Binds explicitly to the standard trailing path natively requested
     const targetUrl = `${n8nUrl.replace(/\/$/, '')}/webhook/stock-approve?token=${encodeURIComponent(token)}`
-    
-    const response = await fetch(targetUrl, { 
+
+    const response = await fetch(targetUrl, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      }
+      headers: { 'Accept': 'application/json' },
     })
 
     if (!response.ok) {
-       return NextResponse.json({ error: `Integration refused connection. Status: ${response.status}` }, { status: 500 })
+      return NextResponse.json({ error: 'Upstream request failed' }, { status: 502 })
     }
 
     return NextResponse.json({ success: true })
-    
+
   } catch (err: any) {
-    console.error("Endpoint proxy failure:", err)
-    return NextResponse.json({ error: err.message || 'Internal proxy bridging fault' }, { status: 500 })
+    console.error('approve route error:', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

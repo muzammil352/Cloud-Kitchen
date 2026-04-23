@@ -29,26 +29,20 @@ function FeedbackForm() {
 
     setIsSubmitting(true)
     try {
-      const webhookUrl = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL
-      if (!webhookUrl) {
-        console.warn("Webhook URL not configured, skipping actual network request.")
-      } else {
-        await fetch(`${webhookUrl}/feedback`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            order_id: orderId,
-            kitchen_id: kitchenId,
-            rating,
-            comment: comment || null,
-          })
-        })
-      }
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: orderId,
+          kitchen_id: kitchenId,
+          rating,
+          comment: comment || null,
+        }),
+      })
       setSubmitted(true)
     } catch (err) {
       console.error(err)
-      // Even if webhook fails locally, show success to not alarm customer in MVP
-      setSubmitted(true) 
+      setSubmitted(true)
     } finally {
       setIsSubmitting(false)
     }
