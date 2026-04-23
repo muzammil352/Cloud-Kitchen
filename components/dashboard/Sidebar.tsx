@@ -8,14 +8,14 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 
 const navItems = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Orders', href: '/dashboard/orders', icon: ShoppingBag },
-  { name: 'Menu', href: '/dashboard/menu', icon: UtensilsCrossed },
-  { name: 'Storefront', href: '/storefront', icon: Store },
-  { name: 'Customers', href: '/dashboard/customers', icon: Users },
-  { name: 'Reports', href: '/dashboard/reports', icon: BarChart2 },
-  { name: 'Approvals', href: '/dashboard/approvals', icon: UserCheck },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { name: 'Dashboard',  href: '/dashboard',           icon: LayoutDashboard },
+  { name: 'Orders',     href: '/dashboard/orders',     icon: ShoppingBag },
+  { name: 'Menu',       href: '/dashboard/menu',       icon: UtensilsCrossed },
+  { name: 'Storefront', href: '/storefront',           icon: Store },
+  { name: 'Customers',  href: '/dashboard/customers',  icon: Users },
+  { name: 'Reports',    href: '/dashboard/reports',    icon: BarChart2 },
+  { name: 'Approvals',  href: '/dashboard/approvals',  icon: UserCheck },
+  { name: 'Settings',   href: '/dashboard/settings',   icon: Settings },
 ]
 
 export function Sidebar({
@@ -63,9 +63,7 @@ export function Sidebar({
         setAvatarMenuOpen(false)
       }
     }
-    if (avatarMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
+    if (avatarMenuOpen) document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [avatarMenuOpen])
 
@@ -74,7 +72,9 @@ export function Sidebar({
     router.push('/login')
   }
 
-  const initials = userEmail ? userEmail.substring(0, 2).toUpperCase() : 'CK'
+  const initials = userName
+    ? userName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    : userEmail.substring(0, 2).toUpperCase()
   const displayName = userName || userEmail.split('@')[0]
 
   return (
@@ -84,26 +84,53 @@ export function Sidebar({
       data-expanded={isExpanded}
       style={{
         width: isExpanded ? '220px' : '68px',
-        height: 'calc(100vh - 24px)',
+        height: '100vh',
         position: 'fixed',
-        top: '12px',
-        left: '12px',
-        zIndex: 40,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 'var(--radius-card)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
+        top: 0,
+        left: 0,
+        zIndex: 100,
+        backgroundColor: 'var(--color-surface)',
+        borderRight: '1px solid var(--color-border)',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        padding: '20px 0',
-        gap: '4px',
-        border: 'none',
-        flexShrink: 0,
         transition: 'width 200ms ease',
+        flexShrink: 0,
+        overflow: 'hidden',
       }}
     >
+      {/* Logo area */}
+      <div style={{
+        height: '64px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: isExpanded ? 'flex-start' : 'center',
+        padding: isExpanded ? '0 20px' : '0',
+        borderBottom: '1px solid var(--color-border)',
+        flexShrink: 0,
+        transition: 'padding 200ms ease, justify-content 200ms ease',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+      }}>
+        {isExpanded ? (
+          <>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: '18px', color: 'var(--color-ink)' }}>Kitchen</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '18px', color: 'var(--color-accent)' }}>OS</span>
+          </>
+        ) : (
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '18px', color: 'var(--color-accent)' }}>KOS</span>
+        )}
+      </div>
+
       {/* Nav items */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, width: '100%', alignItems: 'center', padding: '0 12px' }}>
+      <nav style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '2px',
+        flex: 1,
+        padding: '12px 8px',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      }}>
         {allowedNavItems.map(item => {
           let itemHref = item.href
           if (item.name === 'Storefront') {
@@ -120,188 +147,157 @@ export function Sidebar({
             <Link
               key={item.href}
               href={itemHref}
-              title={isExpanded ? '' : item.name}
+              title={!isExpanded ? item.name : ''}
               style={{
-                width: isExpanded ? '100%' : '44px',
                 height: '44px',
-                borderRadius: '12px',
-                flexShrink: 0,
+                borderRadius: '8px',
                 display: 'flex',
                 flexDirection: 'row',
-                justifyContent: isExpanded ? 'flex-start' : 'center',
                 alignItems: 'center',
-                padding: isExpanded ? '0 14px' : '0',
-                gap: isExpanded ? '12px' : '0',
-                backgroundColor: isActive ? 'var(--accent-surface)' : 'transparent',
-                color: isActive ? 'var(--accent)' : 'var(--text-muted)',
+                padding: '0 12px',
+                gap: '12px',
+                backgroundColor: isActive ? 'var(--color-accent-bg)' : 'transparent',
+                color: isActive ? 'var(--color-accent)' : 'var(--color-ink-3)',
+                borderLeft: isActive ? '3px solid var(--color-accent)' : '3px solid transparent',
                 position: 'relative',
-                transition: 'width 200ms ease, padding 200ms ease, gap 200ms ease, background-color var(--transition), color var(--transition)',
+                textDecoration: 'none',
+                transition: 'background-color var(--transition), color var(--transition)',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
               }}
-              onMouseEnter={(e) => {
+              onMouseEnter={e => {
                 if (!isActive) {
-                  e.currentTarget.style.backgroundColor = 'var(--border)'
-                  e.currentTarget.style.color = 'var(--text-secondary)'
+                  e.currentTarget.style.backgroundColor = 'var(--color-surface-2)'
+                  e.currentTarget.style.color = 'var(--color-ink-2)'
                 }
               }}
-              onMouseLeave={(e) => {
+              onMouseLeave={e => {
                 if (!isActive) {
                   e.currentTarget.style.backgroundColor = 'transparent'
-                  e.currentTarget.style.color = 'var(--text-muted)'
+                  e.currentTarget.style.color = 'var(--color-ink-3)'
                 }
               }}
             >
-              <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', width: '20px' }}>
+              <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px' }}>
                 <Icon size={20} strokeWidth={1.5} />
               </div>
 
               <span style={{
-                fontFamily: 'var(--font-ui)',
+                fontFamily: 'var(--font-body)',
                 fontWeight: 500,
-                fontSize: '13px',
+                fontSize: '14px',
                 color: 'inherit',
                 opacity: isExpanded ? 1 : 0,
-                width: isExpanded ? 'auto' : '0px',
-                transition: 'opacity 150ms ease 80ms, width 200ms ease',
-                whiteSpace: 'nowrap',
+                transition: 'opacity 150ms ease 60ms',
                 overflow: 'hidden',
               }}>
                 {item.name}
               </span>
 
+              {/* Pending approvals red dot */}
               {item.name === 'Approvals' && pendingApprovals > 0 && (
                 <span style={{
                   position: 'absolute',
-                  top: isExpanded ? '15px' : '2px',
-                  right: isExpanded ? '14px' : '2px',
-                  backgroundColor: 'var(--accent)',
-                  color: 'white',
-                  fontSize: '9px',
-                  fontWeight: 'bold',
-                  width: '14px',
-                  height: '14px',
+                  top: '10px',
+                  left: isExpanded ? 'auto' : '30px',
+                  right: isExpanded ? '14px' : 'auto',
+                  width: '8px',
+                  height: '8px',
                   borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  {pendingApprovals}
-                </span>
+                  backgroundColor: 'var(--color-red)',
+                  flexShrink: 0,
+                }} />
               )}
             </Link>
           )
         })}
       </nav>
 
-      {/* Bottom: avatar only */}
-      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0, width: '100%', padding: '0 12px' }}>
-
-        {/* FIX 4 — Clickable avatar with dropdown */}
-        <div ref={avatarMenuRef} style={{ position: 'relative', width: '100%', marginBottom: '8px' }}>
+      {/* Bottom: avatar */}
+      <div style={{ padding: '12px 8px', borderTop: '1px solid var(--color-border)', flexShrink: 0 }}>
+        <div ref={avatarMenuRef} style={{ position: 'relative' }}>
+          {/* Avatar dropdown */}
           {avatarMenuOpen && (
             <div style={{
               position: 'absolute',
-              bottom: '48px',
-              left: '12px',
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: '12px',
-              boxShadow: 'var(--shadow-card)',
+              bottom: '52px',
+              left: '0',
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-lg)',
+              boxShadow: 'var(--shadow-lg)',
               minWidth: '200px',
               padding: '8px',
-              zIndex: 100,
+              zIndex: 200,
             }}>
-              {/* User info */}
-              <div style={{ padding: '12px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
-                <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>
+              <div style={{ padding: '12px', borderBottom: '1px solid var(--color-border)', marginBottom: '4px' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '14px', color: 'var(--color-ink)' }}>
                   {displayName}
                 </div>
-                <div style={{ fontFamily: 'var(--font-ui)', fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-ink-3)', marginTop: '2px' }}>
                   {userEmail}
                 </div>
               </div>
 
-              {/* My Profile */}
-              <button
-                onClick={() => setAvatarMenuOpen(false)}
-                style={{ width: '100%', height: '36px', borderRadius: '8px', padding: '0 12px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', fontFamily: 'var(--font-ui)', color: 'var(--text-primary)', background: 'transparent', border: 'none', cursor: 'pointer', transition: 'background var(--transition)' }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--border)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-              >
-                <User size={16} strokeWidth={1.5} />
-                My Profile
-              </button>
+              <MenuButton icon={<User size={15} strokeWidth={1.5} />} label="My Profile" onClick={() => setAvatarMenuOpen(false)} />
+              <MenuButton icon={<Settings size={15} strokeWidth={1.5} />} label="Settings" onClick={() => { router.push('/dashboard/settings'); setAvatarMenuOpen(false) }} />
 
-              {/* Settings */}
-              <button
-                onClick={() => { router.push('/dashboard/settings'); setAvatarMenuOpen(false) }}
-                style={{ width: '100%', height: '36px', borderRadius: '8px', padding: '0 12px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', fontFamily: 'var(--font-ui)', color: 'var(--text-primary)', background: 'transparent', border: 'none', cursor: 'pointer', transition: 'background var(--transition)' }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--border)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-              >
-                <Settings size={16} strokeWidth={1.5} />
-                Settings
-              </button>
+              <div style={{ borderTop: '1px solid var(--color-border)', margin: '4px 0' }} />
 
-              {/* Divider */}
-              <div style={{ borderTop: '1px solid var(--border)', margin: '4px 0' }} />
-
-              {/* Sign Out */}
-              <button
+              <MenuButton
+                icon={<LogOut size={15} strokeWidth={1.5} />}
+                label="Sign out"
                 onClick={() => { handleLogout(); setAvatarMenuOpen(false) }}
-                style={{ width: '100%', height: '36px', borderRadius: '8px', padding: '0 12px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', fontFamily: 'var(--font-ui)', color: '#C0392B', background: 'transparent', border: 'none', cursor: 'pointer', transition: 'background var(--transition)' }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--border)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-              >
-                <LogOut size={16} strokeWidth={1.5} />
-                Sign Out
-              </button>
+                danger
+              />
             </div>
           )}
 
           {/* Avatar button */}
           <button
-            onClick={() => setAvatarMenuOpen(prev => !prev)}
+            onClick={() => setAvatarMenuOpen(p => !p)}
             style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: isExpanded ? 'flex-start' : 'center',
+              gap: '12px',
               width: '100%',
-              padding: isExpanded ? '0 14px' : '0',
-              gap: isExpanded ? '12px' : '0',
-              height: '40px',
+              height: '44px',
+              padding: '0 12px',
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              borderRadius: '50%',
-              transition: 'opacity var(--transition), padding 200ms ease, gap 200ms ease',
+              borderRadius: '8px',
+              transition: 'background var(--transition)',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
             }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
-            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-2)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
           >
             <div style={{
               width: '32px',
               height: '32px',
               borderRadius: '50%',
-              backgroundColor: 'var(--accent-surface)',
+              backgroundColor: 'var(--color-accent-bg)',
               display: 'flex',
-              justifyContent: 'center',
               alignItems: 'center',
+              justifyContent: 'center',
               flexShrink: 0,
             }}>
-              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: '12px', color: 'var(--accent)' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '12px', color: 'var(--color-accent)' }}>
                 {initials}
               </span>
             </div>
 
             <span style={{
-              fontFamily: 'var(--font-ui)',
+              fontFamily: 'var(--font-body)',
               fontWeight: 500,
               fontSize: '13px',
-              color: 'var(--text-primary)',
+              color: 'var(--color-ink)',
               opacity: isExpanded ? 1 : 0,
-              transition: 'opacity 150ms ease 80ms',
-              whiteSpace: 'nowrap',
+              transition: 'opacity 150ms ease 60ms',
               overflow: 'hidden',
+              textAlign: 'left',
             }}>
               {displayName}
             </span>
@@ -309,5 +305,45 @@ export function Sidebar({
         </div>
       </div>
     </aside>
+  )
+}
+
+function MenuButton({
+  icon,
+  label,
+  onClick,
+  danger = false,
+}: {
+  icon: React.ReactNode
+  label: string
+  onClick: () => void
+  danger?: boolean
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: '100%',
+        height: '36px',
+        borderRadius: '6px',
+        padding: '0 10px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        fontSize: '13px',
+        fontFamily: 'var(--font-body)',
+        color: danger ? 'var(--color-red)' : 'var(--color-ink)',
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        transition: 'background var(--transition)',
+        textAlign: 'left',
+      }}
+      onMouseEnter={e => (e.currentTarget.style.background = danger ? 'var(--color-red-bg)' : 'var(--color-surface-2)')}
+      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+    >
+      {icon}
+      {label}
+    </button>
   )
 }

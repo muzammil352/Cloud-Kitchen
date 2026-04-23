@@ -1,14 +1,32 @@
 import type { Metadata } from "next";
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
-import { DM_Serif_Display } from 'next/font/google';
+import { Fraunces, DM_Sans, JetBrains_Mono } from 'next/font/google';
 import "./globals.css";
 
-const dmSerifDisplay = DM_Serif_Display({ weight: '400', subsets: ['latin'], variable: '--font-display' })
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  weight: ['400', '600'],
+  style: ['normal', 'italic'],
+  variable: '--font-display',
+  display: 'swap',
+})
+
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-body',
+  display: 'swap',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-mono',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
-  title: "Cloud Kitchen SaaS",
-  description: "A minimal, high-performance cloud kitchen platform",
+  title: "KitchenOS",
+  description: "Operations platform for cloud kitchen owners in Pakistan",
 };
 
 export default function RootLayout({
@@ -17,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${dmSerifDisplay.variable} ${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="en" className={`${fraunces.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}>
       <body>
         {children}
       </body>

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { AlertCircle, X } from 'lucide-react'
 
 export function ProfileBanner({ isIncomplete }: { isIncomplete: boolean }) {
-  const [isDismissed, setIsDismissed] = useState(true) // Default true to prevent hydration flicker
+  const [isDismissed, setIsDismissed] = useState(true)
 
   useEffect(() => {
     const dismissed = localStorage.getItem('profile-banner-dismissed') === 'true'
@@ -20,23 +20,45 @@ export function ProfileBanner({ isIncomplete }: { isIncomplete: boolean }) {
   if (!isIncomplete || isDismissed) return null
 
   return (
-    <div className="bg-amber-50 border-b border-amber-200 px-4 md:px-8 py-3 flex items-center justify-between shrink-0 animate-in slide-in-from-top-4 z-40 relative">
-      <div className="flex items-center gap-3">
-        <AlertCircle className="w-5 h-5 text-amber-600" />
-        <p className="text-sm font-medium text-amber-800">
-          Your kitchen profile is incomplete. 
-          <Link href="/dashboard/settings#profile-form" className="ml-1 underline font-bold hover:text-amber-900 transition-colors pointer-events-auto relative z-50">
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: 'var(--color-amber-bg)',
+      borderBottom: '1px solid rgba(196,122,30,0.2)',
+      padding: '12px 24px',
+      marginBottom: '24px',
+      borderRadius: 'var(--radius-md)',
+      flexShrink: 0,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <AlertCircle size={16} strokeWidth={1.5} style={{ color: 'var(--color-amber)', flexShrink: 0 }} />
+        <p style={{ fontSize: '14px', fontFamily: 'var(--font-body)', color: 'var(--color-amber)', margin: 0 }}>
+          Your kitchen profile is incomplete.{' '}
+          <Link
+            href="/dashboard/settings"
+            style={{ fontWeight: 500, color: 'var(--color-amber)', textDecoration: 'underline' }}
+          >
             Complete your profile
           </Link>
           {' '}to enable full visibility.
         </p>
       </div>
-      <button 
+      <button
         onClick={handleDismiss}
-        className="p-1 hover:bg-amber-200/50 rounded-md transition-colors text-amber-700 pointer-events-auto relative z-50"
-        title="Dismiss for this session"
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: '4px',
+          borderRadius: '4px',
+          color: 'var(--color-amber)',
+          display: 'flex',
+          alignItems: 'center',
+          flexShrink: 0,
+        }}
       >
-        <X className="w-4 h-4" />
+        <X size={15} strokeWidth={1.5} />
       </button>
     </div>
   )

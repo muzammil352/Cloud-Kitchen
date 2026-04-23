@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -19,11 +19,8 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
-    
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
       setError(error.message)
@@ -35,118 +32,138 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      width: '100vw', 
-      background: 'linear-gradient(135deg, var(--bg-start), var(--bg-end))',
+    <div style={{
+      minHeight: '100vh',
+      width: '100vw',
+      backgroundColor: 'var(--color-bg)',
       display: 'flex',
+      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '24px'
+      padding: '24px',
+      position: 'relative',
     }}>
-      <div className="card" style={{ width: '100%', maxWidth: '420px', padding: '40px', margin: '0 auto' }}>
-        
-        {/* Logo Mark */}
-        <div style={{ 
-          width: '42px', 
-          height: '42px', 
-          borderRadius: '10px', 
-          backgroundColor: 'var(--bg-start)', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          marginBottom: '24px'
-        }}>
-          <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>CK</span>
-        </div>
+      {/* SVG noise grain */}
+      <svg style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0, opacity: 0.025 }} aria-hidden="true">
+        <filter id="grain-login">
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+          <feColorMatrix type="saturate" values="0"/>
+        </filter>
+        <rect width="100%" height="100%" filter="url(#grain-login)"/>
+      </svg>
 
-        {/* Header */}
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '28px', color: 'var(--text-primary)', marginBottom: '4px' }}>
+      {/* Logo wordmark — above card */}
+      <div style={{ marginBottom: '32px', zIndex: 1 }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: '22px', color: 'var(--color-ink)', letterSpacing: '-0.01em' }}>Kitchen</span>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '22px', color: 'var(--color-accent)', letterSpacing: '-0.01em' }}>OS</span>
+      </div>
+
+      {/* Auth card */}
+      <div style={{
+        width: '100%',
+        maxWidth: '420px',
+        backgroundColor: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: 'var(--shadow-sm)',
+        padding: '36px',
+        zIndex: 1,
+      }}>
+        <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '22px', color: 'var(--color-ink)', marginBottom: '6px' }}>
           Welcome back
         </h1>
-        <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '28px' }}>
+        <p style={{ fontSize: '14px', color: 'var(--color-ink-3)', marginBottom: '28px' }}>
           Sign in to your kitchen dashboard.
         </p>
 
-        {/* Form */}
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label htmlFor="email" style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Email</label>
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <label htmlFor="email" style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '13px', color: 'var(--color-ink-2)' }}>
+              Email
+            </label>
             <input
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="you@kitchen.com"
               required
             />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label htmlFor="password" style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Password</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label htmlFor="password" style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '13px', color: 'var(--color-ink-2)' }}>
+                Password
+              </label>
+              <Link
+                href="#"
+                style={{ fontSize: '13px', color: 'var(--color-accent)', textDecoration: 'none' }}
+                onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+                onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
+              >
+                Forgot password?
+              </Link>
+            </div>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
                 required
                 style={{ paddingRight: '40px' }}
               />
-              <button 
-                type="button" 
-                onClick={() => setShowPassword(!showPassword)}
-                style={{ position: 'absolute', right: '12px', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}
+              <button
+                type="button"
+                onClick={() => setShowPassword(p => !p)}
+                style={{ position: 'absolute', right: '12px', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: 'var(--color-ink-3)' }}
               >
-                {showPassword ? (
-                  <EyeOff size={16} color="var(--text-muted)" strokeWidth={1.5} />
-                ) : (
-                  <Eye size={16} color="var(--text-muted)" strokeWidth={1.5} />
-                )}
+                {showPassword ? <EyeOff size={16} strokeWidth={1.5} /> : <Eye size={16} strokeWidth={1.5} />}
               </button>
             </div>
-            
-            <div style={{ textAlign: 'right', marginTop: '4px' }}>
-              <Link href="#" style={{ fontSize: '13px', color: 'var(--accent)', textDecoration: 'none' }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'} onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}>
-                Forgot password?
-              </Link>
-            </div>
           </div>
 
-          <button 
-            type="submit" 
-            className="btn-primary" 
+          {/* Error — above submit, fades in */}
+          {error && (
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: '10px',
+              backgroundColor: 'var(--color-red-bg)',
+              borderLeft: '4px solid var(--color-red)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 14px',
+              animation: 'fadeIn 150ms ease',
+            }}>
+              <AlertCircle size={15} strokeWidth={1.5} style={{ flexShrink: 0, marginTop: '1px', color: 'var(--color-red)' }} />
+              <span style={{ fontSize: '13px', color: 'var(--color-red)' }}>{error}</span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="btn-primary"
             disabled={isLoading}
-            style={{ width: '100%', height: '46px', fontSize: '15px', fontWeight: 600, marginTop: '10px' }}
+            style={{ width: '100%', height: '44px', fontSize: '14px', marginTop: '4px' }}
           >
-            {isLoading ? 'Signing in...' : 'Sign in'}
+            {isLoading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
-
-        {error && (
-          <div style={{ 
-            marginTop: '16px',
-            backgroundColor: '#F5ECEA', 
-            borderRadius: '8px', 
-            padding: '10px 14px', 
-            fontSize: '13px', 
-            color: '#8B2E25', 
-            borderLeft: '3px solid #C0392B' 
-          }}>
-            {error}
-          </div>
-        )}
-
-        <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '24px 0' }} />
-
-        <div style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
-          Don't have an account?{' '}
-          <Link href="/signup" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
-            Sign up
-          </Link>
-        </div>
-        
       </div>
+
+      {/* Footer link — below card */}
+      <p style={{ marginTop: '24px', fontSize: '13px', color: 'var(--color-ink-3)', zIndex: 1, textAlign: 'center' }}>
+        Don&apos;t have an account?{' '}
+        <Link
+          href="/signup"
+          style={{ color: 'var(--color-accent)', fontWeight: 500, textDecoration: 'none' }}
+          onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+          onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
+        >
+          Sign up
+        </Link>
+      </p>
     </div>
   )
 }

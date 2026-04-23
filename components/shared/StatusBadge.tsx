@@ -1,32 +1,34 @@
-import { Badge } from "@/components/ui/badge"
 import { OrderStatus } from "@/lib/types"
 
+const statusConfig: Record<OrderStatus, { bg: string; color: string; label: string }> = {
+  pending:          { bg: 'var(--color-amber-bg)',              color: 'var(--color-amber)',  label: 'Pending' },
+  confirmed:        { bg: 'var(--color-blue-bg)',               color: 'var(--color-blue)',   label: 'Confirmed' },
+  preparing:        { bg: 'var(--color-accent-bg)',             color: 'var(--color-accent)', label: 'Preparing' },
+  ready:            { bg: 'var(--color-green-bg)',              color: 'var(--color-green)',  label: 'Ready' },
+  dispatched:       { bg: 'rgba(212,83,26,0.08)',               color: 'var(--color-accent)', label: 'Dispatched' },
+  out_for_delivery: { bg: 'rgba(45,122,79,0.12)',               color: 'var(--color-green)',  label: 'Out for delivery' },
+  delivered:        { bg: 'var(--color-green-bg)',              color: 'var(--color-green)',  label: 'Delivered' },
+  cancelled:        { bg: 'var(--color-red-bg)',                color: 'var(--color-red)',    label: 'Cancelled' },
+}
+
 export function StatusBadge({ status }: { status: OrderStatus }) {
-  const styles: Record<OrderStatus, string> = {
-    pending:          "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100",
-    confirmed:        "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-100",
-    preparing:        "bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-100",
-    ready:            "bg-green-100 text-green-800 border-green-300 hover:bg-green-100",
-    dispatched:       "bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-100",
-    out_for_delivery: "bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-100",
-    delivered:        "bg-green-100 text-green-800 border-green-300 hover:bg-green-100",
-    cancelled:        "bg-red-100 text-red-800 border-red-300 hover:bg-red-100",
-  }
-
-  const labels: Record<OrderStatus, string> = {
-    pending:          "Pending",
-    confirmed:        "Confirmed",
-    preparing:        "Preparing",
-    ready:            "Ready",
-    dispatched:       "Dispatched",
-    out_for_delivery: "Out for Delivery",
-    delivered:        "Delivered",
-    cancelled:        "Cancelled",
-  }
-
+  const cfg = statusConfig[status] ?? statusConfig.pending
   return (
-    <Badge variant="outline" className={styles[status]}>
-      {labels[status]}
-    </Badge>
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      padding: '3px 8px',
+      borderRadius: '9999px',
+      fontSize: '11px',
+      fontFamily: 'var(--font-mono)',
+      fontWeight: 400,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      whiteSpace: 'nowrap',
+      backgroundColor: cfg.bg,
+      color: cfg.color,
+    }}>
+      {cfg.label}
+    </span>
   )
 }
