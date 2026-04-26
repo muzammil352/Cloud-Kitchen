@@ -20,15 +20,15 @@ export default async function MenuPage() {
 
   if (profile.role !== 'owner') {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '70vh', textAlign: 'center', padding: '32px' }}>
-        <div style={{ width: '64px', height: '64px', backgroundColor: 'var(--bg-start)', border: '1px solid var(--border)', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-           <svg style={{ width: '32px', height: '32px', color: 'var(--text-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-           </svg>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', textAlign: 'center', padding: '48px', border: '1.5px dashed var(--color-border)', borderRadius: 'var(--radius-lg)' }}>
+        <div style={{ width: '56px', height: '56px', backgroundColor: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+          <svg style={{ width: '24px', height: '24px', color: 'var(--color-ink-3)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
         </div>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', color: 'var(--text-primary)', marginBottom: '8px' }}>Access Restricted</h1>
-        <p style={{ fontSize: '14px', color: 'var(--text-muted)', maxWidth: '300px' }}>
-          Menu management is restricted to kitchen owners. Please contact your administrator if you need access.
+        <p style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '15px', color: 'var(--color-ink-2)', marginBottom: '6px' }}>Owner access required</p>
+        <p style={{ fontSize: '13px', color: 'var(--color-ink-3)', maxWidth: '280px' }}>
+          Menu management is restricted to kitchen owners.
         </p>
       </div>
     )
@@ -41,7 +41,10 @@ export default async function MenuPage() {
     .order('category')
     
   return (
-    <div className="flex flex-col h-full animate-in fade-in duration-300">
+    <div style={{ opacity: 0, animation: 'fadeIn 300ms forwards' }}>
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '22px', color: 'var(--color-ink)' }}>Menu</h1>
+      </div>
       <MenuBoard initialItems={menuItems || []} kitchenId={profile.kitchen_id} />
     </div>
   )

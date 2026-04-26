@@ -107,6 +107,8 @@
     --btn-dark:       var(--color-accent);
     --tag-purple:     var(--color-blue-bg);
     --tag-amber:      var(--color-amber-bg);
+    --destructive:    var(--color-red);
+    --shadow-sm:      0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   }
 }
 

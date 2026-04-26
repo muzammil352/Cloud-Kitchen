@@ -66,12 +66,12 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
       
       <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div>
-          <h3 style={{ fontWeight: 600, fontSize: '18px', color: 'var(--text-primary)', fontFamily: 'var(--font-ui)' }}>Basic Profile</h3>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>These details are visible to customers.</p>
+          <h3 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '13px', color: 'var(--color-ink-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Kitchen Profile</h3>
+          <div style={{ height: '1px', background: 'var(--color-border)', marginTop: '8px' }} />
         </div>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label htmlFor="name" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>Kitchen Name</label>
+          <label htmlFor="name" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-ink-2)' }}>Kitchen Name</label>
           <input 
             id="name" 
             required 
@@ -81,45 +81,45 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label htmlFor="email" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>Public Email</label>
-          <input 
-            id="email" 
-            disabled 
-            value={kitchen.email} 
-            style={{ backgroundColor: 'var(--bg-start)', color: 'var(--text-muted)' }}
+          <label htmlFor="email" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-ink-2)' }}>Public Email</label>
+          <input
+            id="email"
+            disabled
+            value={kitchen.email}
+            style={{ backgroundColor: 'var(--color-surface-2)', color: 'var(--color-ink-3)' }}
             title="Email changes require administrator approval"
           />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label htmlFor="phone" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>Phone Number <span style={{ color: 'var(--destructive)' }}>*</span></label>
+            <label htmlFor="phone" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-ink-2)' }}>Phone <span style={{ color: 'var(--color-red)' }}>*</span></label>
             <input
               id="phone"
               required
               value={formData.phone}
               onChange={e => setFormData({...formData, phone: e.target.value})}
-              style={{ borderColor: !formData.phone ? '#F59E0B' : 'var(--border)' }}
+              style={!formData.phone ? { borderColor: 'var(--color-amber)' } : undefined}
               placeholder="e.g. 0300 1234567"
             />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label htmlFor="city" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>City <span style={{ color: 'var(--destructive)' }}>*</span></label>
+            <label htmlFor="city" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-ink-2)' }}>City <span style={{ color: 'var(--color-red)' }}>*</span></label>
             <input
               id="city"
               required
               value={formData.city}
               onChange={e => setFormData({...formData, city: e.target.value})}
-              style={{ borderColor: !formData.city ? '#F59E0B' : 'var(--border)' }}
+              style={!formData.city ? { borderColor: 'var(--color-amber)' } : undefined}
               placeholder="e.g. Lahore"
             />
           </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label htmlFor="slug" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>Your Store URL</label>
-          <div style={{ display: 'flex', alignItems: 'stretch', border: `1px solid ${slugError ? '#dc2626' : 'var(--border)'}`, borderRadius: '10px', overflow: 'hidden', backgroundColor: 'var(--surface)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', padding: '9px 13px', backgroundColor: 'var(--bg-start)', color: 'var(--text-muted)', fontSize: '14px', fontFamily: 'var(--font-ui)', borderRight: '1px solid var(--border)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+          <label htmlFor="slug" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-ink-2)' }}>Your Store URL</label>
+          <div style={{ display: 'flex', alignItems: 'stretch', border: `1px solid ${slugError ? 'var(--color-red)' : 'var(--color-border-mid)'}`, borderRadius: 'var(--radius-md)', overflow: 'hidden', backgroundColor: 'var(--color-surface)' }}>
+            <span style={{ display: 'flex', alignItems: 'center', padding: '9px 13px', backgroundColor: 'var(--color-surface-2)', color: 'var(--color-ink-3)', fontSize: '14px', fontFamily: 'var(--font-body)', borderRight: '1px solid var(--color-border)', whiteSpace: 'nowrap', flexShrink: 0 }}>
               cloudkitchen.app/
             </span>
             <input
@@ -139,15 +139,15 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
             />
           </div>
           {slugError && (
-            <p style={{ fontSize: '12px', color: '#dc2626', margin: 0 }}>{slugError}</p>
+            <p style={{ fontSize: '12px', color: 'var(--color-red)', margin: 0 }}>{slugError}</p>
           )}
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
+          <p style={{ fontSize: '12px', color: 'var(--color-ink-3)', margin: 0 }}>
             This is the link you share with customers. Once set, changing it will break existing shared links.
           </p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label htmlFor="welcome_banner" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>Storefront greeting (shown to customers)</label>
+          <label htmlFor="welcome_banner" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-ink-2)' }}>Storefront greeting</label>
           <input
             id="welcome_banner"
             value={formData.welcome_banner}
@@ -160,16 +160,14 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
         </div>
       </section>
 
-      <div style={{ height: '1px', width: '100%', backgroundColor: 'var(--border)' }} />
-
       <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div>
-          <h3 style={{ fontWeight: 600, fontSize: '18px', color: 'var(--text-primary)', fontFamily: 'var(--font-ui)' }}>Operational Settings</h3>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Manage how your kitchen operates internally.</p>
+          <h3 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '13px', color: 'var(--color-ink-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Notifications</h3>
+          <div style={{ height: '1px', background: 'var(--color-border)', marginTop: '8px' }} />
         </div>
-        
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '300px' }}>
-          <label htmlFor="delivery_radius_km" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>Delivery Radius (km)</label>
+          <label htmlFor="delivery_radius_km" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-ink-2)' }}>Delivery Radius (km)</label>
           <input 
             id="delivery_radius_km" 
             type="number"
@@ -182,45 +180,45 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
           />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>System Notification Channel</label>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            {['email', 'whatsapp', 'both', 'none'].map((channel) => (
-              <label 
-                key={channel} 
-                style={{ 
-                  flex: 1, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '12px', 
-                  cursor: 'pointer', 
-                  padding: '16px', 
-                  border: '1px solid', 
-                  borderColor: formData.notify_channel === channel ? 'var(--accent)' : 'var(--border)', 
-                  borderRadius: 'var(--radius-card)',
-                  background: formData.notify_channel === channel ? 'var(--accent-surface)' : 'transparent',
-                  transition: 'var(--transition)'
-                }}
-              >
-                <input 
-                  type="radio" 
-                  name="notify_channel"
-                  value={channel}
-                  checked={formData.notify_channel === channel}
-                  onChange={(e) => setFormData({...formData, notify_channel: e.target.value})}
-                  style={{ width: '16px', height: '16px', margin: 0, cursor: 'pointer' }}
-                />
-                <span style={{ textTransform: 'capitalize', fontWeight: 500, fontSize: '14px', color: 'var(--text-primary)' }}>{channel}</span>
-              </label>
-            ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-ink-2)' }}>Notification Channel</label>
+          <div style={{ display: 'inline-flex', border: '1px solid var(--color-border-mid)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+            {[
+              { value: 'email', label: 'Email only' },
+              { value: 'whatsapp', label: 'WhatsApp only' },
+              { value: 'both', label: 'Both' },
+            ].map((opt, i, arr) => {
+              const isActive = formData.notify_channel === opt.value
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, notify_channel: opt.value })}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '13px',
+                    fontFamily: 'var(--font-body)',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    border: 'none',
+                    borderRight: i < arr.length - 1 ? '1px solid var(--color-border-mid)' : 'none',
+                    background: isActive ? 'var(--color-accent)' : 'transparent',
+                    color: isActive ? '#FFFFFF' : 'var(--color-ink-2)',
+                    transition: 'background 150ms ease, color 150ms ease',
+                  }}
+                >
+                  {opt.label}
+                </button>
+              )
+            })}
           </div>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Select how you want to receive important system alerts (like AI reorder suggestions).</p>
+          <p style={{ fontSize: '12px', color: 'var(--color-ink-3)' }}>How you receive important alerts like AI reorder suggestions.</p>
         </div>
       </section>
 
-      <div style={{ paddingTop: '24px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <p style={{ fontSize: '14px', fontWeight: 500, color: '#10B981', transition: 'opacity 300ms', opacity: success ? 1 : 0 }}>
-          Settings saved successfully!
+      <div style={{ paddingTop: '24px', borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <p style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-green)', transition: 'opacity 300ms', opacity: success ? 1 : 0 }}>
+          Settings saved.
         </p>
         <button type="submit" disabled={isSubmitting} className="btn-primary">
           {isSubmitting ? 'Saving...' : 'Save Settings'}

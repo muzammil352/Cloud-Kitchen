@@ -29,7 +29,13 @@ export default async function ApprovalsPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div className="h-full flex flex-col pt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div style={{ opacity: 0, animation: 'fadeIn 300ms forwards' }}>
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '22px', color: 'var(--color-ink)' }}>Approvals</h1>
+        <p style={{ fontSize: '14px', color: 'var(--color-ink-3)', marginTop: '4px' }}>
+          Actions pending your review before automation fires. Approve to execute, reject to dismiss.
+        </p>
+      </div>
       <ApprovalsBoard initialApprovals={initialApprovals || []} />
     </div>
   )

@@ -76,7 +76,7 @@ export default async function ReportsPage() {
 
   // --- FEEDBACK AGGREGATION ---
   const { data: feedbacks } = await supabase
-    .from('feedbacks')
+    .from('feedback')
     .select('rating')
     .eq('kitchen_id', kitchenId)
 
@@ -102,77 +102,74 @@ export default async function ReportsPage() {
 
   return (
     <div style={{ opacity: 0, animation: 'fadeIn 300ms forwards', paddingBottom: '48px' }}>
-      <style>{`
-        @keyframes fadeIn { to { opacity: 1; } }
-        .chart-bar-hover:hover .chart-tooltip { opacity: 1; }
-      `}</style>
-      
+      <style>{`.chart-bar-hover:hover .chart-tooltip { opacity: 1; }`}</style>
+
       {/* Page Header */}
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '28px', color: 'var(--text-primary)' }}>Reports & Analytics</h1>
+        <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '22px', color: 'var(--color-ink)' }}>Reports</h1>
       </div>
 
       {deliveredOrders.length === 0 && stockList.length === 0 ? (
-        <div style={{ height: '40vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px', textAlign: 'center', border: '2px dashed var(--border)', borderRadius: '12px', background: 'var(--bg-start)', opacity: 0.7 }}>
-          <p style={{ fontSize: '20px', fontWeight: 500, color: 'var(--text-primary)' }}>No historical data available</p>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>Data matrices will initialize immediately upon first order completion.</p>
+        <div style={{ height: '40vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px', textAlign: 'center', border: '1.5px dashed var(--color-border)', borderRadius: 'var(--radius-lg)', background: 'var(--color-surface-2)' }}>
+          <p style={{ fontSize: '15px', fontWeight: 500, color: 'var(--color-ink-2)' }}>No historical data available</p>
+          <p style={{ fontSize: '13px', color: 'var(--color-ink-3)', marginTop: '4px' }}>Reports will appear after your first completed order.</p>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
           
           {/* Revenue Chart */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
-            <h2 style={{ fontSize: '14px', fontWeight: 600, fontFamily: 'var(--font-ui)', color: 'var(--text-primary)', marginBottom: '24px' }}>30-Day Revenue Trend</h2>
-            
-            <div style={{ height: '200px', display: 'flex', alignItems: 'flex-end', gap: '4px', borderBottom: '1px solid var(--border)', position: 'relative', marginTop: '16px' }}>
-               <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(var(--border) 1px, transparent 1px)', backgroundSize: '100% 40px', pointerEvents: 'none', opacity: 0.2 }}></div>
-               
+            <h2 style={{ fontSize: '15px', fontWeight: 500, fontFamily: 'var(--font-body)', color: 'var(--color-ink)', marginBottom: '24px' }}>30-Day Revenue Trend</h2>
+
+            <div style={{ height: '200px', display: 'flex', alignItems: 'flex-end', gap: '3px', borderBottom: '1px solid var(--color-border)', position: 'relative' }}>
                {dailyData.map((d, i) => {
+                 const isToday = i === dailyData.length - 1
                  const pct = (d.revenue / maxRevenue) * 100
                  return (
                    <div key={i} className="chart-bar-hover" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%', position: 'relative' }}>
-                     <span className="chart-tooltip" style={{ opacity: 0, position: 'absolute', top: '-30px', left: '50%', transform: 'translateX(-50%)', background: 'var(--text-primary)', color: 'var(--bg-start)', fontSize: '10px', fontWeight: 700, padding: '4px 8px', borderRadius: '4px', pointerEvents: 'none', whiteSpace: 'nowrap', transition: 'opacity 0.2s zIndex', zIndex: 10, fontFamily: 'var(--font-mono)' }}>
+                     <span className="chart-tooltip" style={{ opacity: 0, position: 'absolute', top: '-30px', left: '50%', transform: 'translateX(-50%)', background: 'var(--color-ink)', color: 'var(--color-bg)', fontSize: '10px', padding: '4px 8px', borderRadius: '4px', pointerEvents: 'none', whiteSpace: 'nowrap', transition: 'opacity 0.15s', zIndex: 10, fontFamily: 'var(--font-mono)' }}>
                        {formatCurrency(d.revenue)}
                      </span>
-                     
-                     <div 
-                       style={{ width: '100%', backgroundColor: 'var(--accent)', cursor: 'pointer', borderRadius: '2px 2px 0 0', height: `${Math.max(pct, 0.5)}%`, transition: 'height 0.3s' }}
-                     />
+                     <div style={{ width: '100%', backgroundColor: isToday ? 'var(--color-accent)' : 'rgba(212,83,26,0.25)', borderRadius: '2px 2px 0 0', height: `${Math.max(pct, 0.5)}%`, transition: 'height 0.3s' }} />
                    </div>
                  )
                })}
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
-               <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{thirtyDaysAgo.toLocaleDateString(undefined, {month:'short', day:'numeric'})}</span>
-               <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Today</span>
+               <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--color-ink-3)' }}>{thirtyDaysAgo.toLocaleDateString(undefined, {month:'short', day:'numeric'})}</span>
+               <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--color-ink-3)' }}>Today</span>
             </div>
           </div>
 
           {/* Top Items Table */}
           <div className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '24px' }}>
-              <h2 style={{ fontSize: '14px', fontWeight: 600, fontFamily: 'var(--font-ui)', color: 'var(--text-primary)' }}>Top Selling Items</h2>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border)' }}>
+              <h2 style={{ fontSize: '15px', fontWeight: 500, fontFamily: 'var(--font-body)', color: 'var(--color-ink)' }}>Top Selling Items</h2>
             </div>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', minWidth: '400px' }}>
                 <thead>
                   <tr>
-                    <th style={{ paddingLeft: '24px' }}>Item Name</th>
-                    <th style={{ textAlign: 'right' }}>Units Sold</th>
+                    <th style={{ paddingLeft: '24px' }}>#</th>
+                    <th>Item Name</th>
+                    <th style={{ textAlign: 'right' }}>Units</th>
                     <th style={{ textAlign: 'right', paddingRight: '24px' }}>Revenue</th>
                   </tr>
                 </thead>
                 <tbody>
                   {topItems.length === 0 ? (
                     <tr>
-                      <td colSpan={3} style={{ padding: '60px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>No items sold yet.</td>
+                      <td colSpan={4} style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--color-ink-3)' }}>No items sold yet.</td>
                     </tr>
                   ) : (
                     topItems.map((item, idx) => (
                       <tr key={idx}>
-                        <td style={{ paddingLeft: '24px', color: 'var(--text-primary)', fontWeight: 500 }}>{item.name}</td>
-                        <td className="font-mono" style={{ textAlign: 'right', color: 'var(--accent)' }}>{item.qty}x</td>
-                        <td className="font-mono" style={{ textAlign: 'right', color: 'var(--text-muted)', paddingRight: '24px' }}>{formatCurrency(item.rev)}</td>
+                        <td style={{ paddingLeft: '24px', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-ink-3)' }}>
+                          {String(idx + 1).padStart(2, '0')}
+                        </td>
+                        <td style={{ color: 'var(--color-ink)', fontWeight: 500 }}>{item.name}</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', textAlign: 'right', color: 'var(--color-accent)' }}>{item.qty}</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', textAlign: 'right', color: 'var(--color-ink-3)', paddingRight: '24px' }}>{formatCurrency(item.rev)}</td>
                       </tr>
                     ))
                   )}
@@ -183,35 +180,37 @@ export default async function ReportsPage() {
 
           {/* Customer Satisfaction */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
-            <h2 style={{ fontSize: '14px', fontWeight: 600, fontFamily: 'var(--font-ui)', color: 'var(--text-primary)', marginBottom: '24px' }}>Customer Satisfaction</h2>
-            
+            <h2 style={{ fontSize: '15px', fontWeight: 500, fontFamily: 'var(--font-body)', color: 'var(--color-ink)', marginBottom: '24px' }}>Customer Satisfaction</h2>
+
             {feedbackList.length === 0 ? (
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: 'var(--text-muted)', textAlign: 'center', background: 'var(--bg-start)', borderRadius: '8px' }}>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px', fontSize: '14px', color: 'var(--color-ink-3)', textAlign: 'center', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)' }}>
                 No feedback received yet.
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '32px', alignItems: 'center', height: '100%' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px' }}>
-                  <span className="font-mono" style={{ fontSize: '48px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-2px' }}>{avgRating.toFixed(1)}</span>
-                  <div style={{ display: 'flex', gap: '4px', color: 'var(--tag-amber)', marginTop: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '32px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-lg)' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '52px', color: 'var(--color-ink)', lineHeight: 1 }}>{avgRating.toFixed(1)}</span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: '24px', color: 'var(--color-ink-3)' }}>/ 5.0</span>
+                  </div>
+                  <div style={{ color: 'var(--color-amber)', fontSize: '16px', marginTop: '8px', letterSpacing: '2px' }}>
                     {'★'.repeat(Math.round(avgRating))}{'☆'.repeat(5 - Math.round(avgRating))}
                   </div>
-                  <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700, color: 'var(--text-muted)', marginTop: '16px' }}>{feedbackList.length} reviews</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--color-ink-3)', marginTop: '12px' }}>{feedbackList.length} reviews</span>
                 </div>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {[5,4,3,2,1].map(stars => {
                     const count = ratingDist[stars-1]
                     const pct = (count / feedbackList.length) * 100
                     return (
-                      <div key={stars} style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '14px' }}>
-                        <span style={{ width: '40px', color: 'var(--text-muted)', fontWeight: 500, fontSize: '12px', display: 'flex', justifyContent: 'space-between' }}>
-                          {stars} <span style={{ color: 'var(--tag-amber)', opacity: 0.5 }}>★</span>
-                        </span>
-                        <div style={{ flex: 1, height: '8px', background: 'var(--bg-start)', borderRadius: '4px', overflow: 'hidden' }}>
-                          <div style={{ height: '100%', background: 'var(--text-primary)', width: `${pct}%`, transition: 'width 0.5s' }}></div>
+                      <div key={stars} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-ink-3)', width: '16px', textAlign: 'right' }}>{stars}</span>
+                        <span style={{ color: 'var(--color-amber)', fontSize: '12px' }}>★</span>
+                        <div style={{ flex: 1, height: '6px', background: 'var(--color-border)', borderRadius: '100px', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', background: 'var(--color-amber)', width: `${pct}%`, transition: 'width 0.5s' }} />
                         </div>
-                        <span className="font-mono" style={{ width: '32px', textAlign: 'right', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)' }}>{count}</span>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-ink-3)', width: '24px', textAlign: 'right' }}>{count}</span>
                       </div>
                     )
                   })}
@@ -222,8 +221,8 @@ export default async function ReportsPage() {
 
           {/* Stock Safety Margins */}
           <div className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '24px' }}>
-              <h2 style={{ fontSize: '14px', fontWeight: 600, fontFamily: 'var(--font-ui)', color: 'var(--text-primary)' }}>Stock Safety Margins</h2>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border)' }}>
+              <h2 style={{ fontSize: '15px', fontWeight: 500, fontFamily: 'var(--font-body)', color: 'var(--color-ink)' }}>Stock Safety Margins</h2>
             </div>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', minWidth: '400px' }}>

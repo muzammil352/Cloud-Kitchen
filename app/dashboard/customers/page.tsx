@@ -27,7 +27,7 @@ export default async function CustomersPage() {
     .limit(100)
 
   return (
-    <div className="h-full flex flex-col animate-in fade-in duration-300">
+    <div style={{ opacity: 0, animation: 'fadeIn 300ms forwards' }}>
       <CustomerBoard initialCustomers={customers || []} />
     </div>
   )

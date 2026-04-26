@@ -28,11 +28,10 @@ export default async function SettingsPage() {
     .single()
 
   return (
-    <div style={{ opacity: 0, animation: 'fadeIn 300ms forwards', maxWidth: '600px' }}>
-      <style>{`@keyframes fadeIn { to { opacity: 1; } }`}</style>
+    <div style={{ opacity: 0, animation: 'fadeIn 300ms forwards', maxWidth: '640px' }}>
       <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '28px', color: 'var(--text-primary)' }}>Kitchen Settings</h1>
-        <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>Manage your kitchen profile and notification preferences.</p>
+        <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '22px', color: 'var(--color-ink)' }}>Settings</h1>
+        <p style={{ fontSize: '14px', color: 'var(--color-ink-3)', marginTop: '4px' }}>Manage your kitchen profile and notification preferences.</p>
       </div>
 
       <SettingsForm kitchen={kitchen} />

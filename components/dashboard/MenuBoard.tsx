@@ -218,7 +218,9 @@ export function MenuBoard({ initialItems, kitchenId }: { initialItems: MenuItem[
       {/* RIGHT COLUMN */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '28px', color: 'var(--text-primary)' }}>Menu Items</h1>
+          <p style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '15px', color: 'var(--color-ink-3)' }}>
+            {visibleItems.length} item{visibleItems.length !== 1 ? 's' : ''}
+          </p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>

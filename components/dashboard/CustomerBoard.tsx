@@ -15,9 +15,9 @@ import { createClient } from '@/lib/supabase/client'
 const getHashColor = (id: string) => {
   const charCode = id.charCodeAt(id.length - 1) || 0;
   const mod = charCode % 3;
-  if (mod === 0) return { bg: 'var(--tag-purple)', text: '#5B3FD9' };
-  if (mod === 1) return { bg: 'var(--tag-amber)', text: '#92620A' };
-  return { bg: 'var(--accent-surface)', text: 'var(--accent)' };
+  if (mod === 0) return { bg: 'var(--color-blue-bg)', text: 'var(--color-blue)' };
+  if (mod === 1) return { bg: 'var(--color-amber-bg)', text: 'var(--color-amber)' };
+  return { bg: 'var(--color-accent-bg)', text: 'var(--color-accent)' };
 }
 
 const getInitials = (name: string) => {
@@ -62,9 +62,11 @@ export function CustomerBoard({ initialCustomers }: { initialCustomers: Customer
       <style>{`@keyframes fadeIn { to { opacity: 1; } }`}</style>
       
       {/* Page Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '28px', color: 'var(--text-primary)' }}>Customers</h1>
-        <div></div> {/* Right: empty */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
+        <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '22px', color: 'var(--color-ink)' }}>Customers</h1>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--color-ink-3)' }}>
+          {sorted.length} total
+        </span>
       </div>
 
       <div className="card" style={{ padding: 0, overflowX: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>

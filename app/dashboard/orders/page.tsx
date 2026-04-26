@@ -36,20 +36,19 @@ export default async function OrdersPage() {
     .gte('created_at', pktStartOfDay)
     .order('created_at', { ascending: false })
 
+  const todayLabel = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+
   return (
     <div style={{ opacity: 0, animation: 'fadeIn 300ms forwards' }}>
-      <style>{`@keyframes fadeIn { to { opacity: 1; } }`}</style>
 
       {/* Page Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '28px', color: 'var(--text-primary)' }}>Orders</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
+        <div>
+          <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '22px', color: 'var(--color-ink)' }}>Orders</h1>
+        </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <input 
-            type="text" 
-            placeholder="Search orders..." 
-            style={{ width: '240px', padding: '9px 13px', fontSize: '13px' }} 
-          />
-          <button className="btn-outline">Export</button>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--color-ink-3)' }}>{todayLabel}</span>
+          <button className="btn-outline" style={{ fontSize: '13px', padding: '7px 14px' }}>Export</button>
         </div>
       </div>
       

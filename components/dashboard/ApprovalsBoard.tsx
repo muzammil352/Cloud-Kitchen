@@ -6,11 +6,64 @@ import { createClient } from '@/lib/supabase/client'
 import { timeAgo } from '@/lib/utils'
 import { CheckCircle } from 'lucide-react'
 
+const TYPE_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
+  low_stock: {
+    label: 'LOW STOCK',
+    color: 'var(--color-amber)',
+    bg: 'var(--color-amber-bg)',
+    border: 'var(--color-amber)',
+  },
+  win_back: {
+    label: 'WIN-BACK',
+    color: 'var(--color-blue)',
+    bg: 'var(--color-blue-bg)',
+    border: 'var(--color-blue)',
+  },
+  upsell: {
+    label: 'UPSELL',
+    color: 'var(--color-accent)',
+    bg: 'var(--color-accent-bg)',
+    border: 'var(--color-accent)',
+  },
+}
+
+const DEFAULT_TYPE = {
+  label: 'ALERT',
+  color: 'var(--color-ink-3)',
+  bg: 'var(--color-surface-2)',
+  border: 'var(--color-border-mid)',
+}
+
+function buildMessage(type: string, payload: Record<string, any>): { main: string; detail: string } {
+  if (type === 'low_stock') {
+    return {
+      main: `${payload.ingredient_name || 'An ingredient'} is running low.`,
+      detail: `Current stock: ${payload.current_stock ?? 0} ${payload.unit ?? ''}. Reorder level: ${payload.reorder_level ?? 0} ${payload.unit ?? ''}. Supplier: ${payload.supplier_name || 'Default Supplier'} at ${payload.supplier_phone || 'N/A'}.`,
+    }
+  }
+  if (type === 'win_back') {
+    return {
+      main: `Send a win-back offer to ${payload.customer_name || 'a customer'}.`,
+      detail: `Last order: ${payload.last_order_date || 'unknown'}. Suggested discount: ${payload.discount || '10%'}.`,
+    }
+  }
+  if (type === 'upsell') {
+    return {
+      main: `Suggest ${payload.item_name || 'an item'} to ${payload.customer_name || 'a customer'}.`,
+      detail: `Based on order history. Item price: ${payload.item_price || 'N/A'}.`,
+    }
+  }
+  return {
+    main: payload.message || 'Automation action requires your approval.',
+    detail: '',
+  }
+}
+
 export function ApprovalsBoard({ initialApprovals }: { initialApprovals: NotificationLog[] }) {
   const [approvals, setApprovals] = useState<NotificationLog[]>(initialApprovals)
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [errorMap, setErrorMap] = useState<Record<string, string>>({})
-  
+
   const supabase = createClient()
 
   const handleAction = async (notification: NotificationLog, action: 'approve' | 'reject') => {
@@ -27,27 +80,21 @@ export function ApprovalsBoard({ initialApprovals }: { initialApprovals: Notific
         const res = await fetch('/api/approve', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: notification.approval_token })
+          body: JSON.stringify({ token: notification.approval_token }),
         })
-        
         if (!res.ok) {
           const js = await res.json()
-          throw new Error(js.error || 'Downstream integration rejected webhook payload.')
+          throw new Error(js.error || 'Webhook rejected.')
         }
       }
 
       const finalStatus = action === 'approve' ? 'approved' : 'rejected'
       setApprovals(prev => prev.filter(a => a.notification_id !== notification.notification_id))
 
-      const { error } = await supabase
+      await supabase
         .from('notifications_log')
         .update({ status: finalStatus, resolved_at: new Date().toISOString() })
         .eq('notification_id', notification.notification_id)
-        
-      if (error) {
-         console.error("Critical State Drift:", error)
-      }
-
     } catch (err: any) {
       setErrorMap(prev => ({ ...prev, [notification.notification_id]: err.message }))
     } finally {
@@ -55,79 +102,101 @@ export function ApprovalsBoard({ initialApprovals }: { initialApprovals: Notific
     }
   }
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', opacity: 0, animation: 'fadeIn 300ms forwards' }}>
-      <style>{`@keyframes fadeIn { to { opacity: 1; } }`}</style>
-      
-      {/* Page Header */}
-      <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '28px', color: 'var(--text-primary)' }}>Approvals</h1>
+  if (approvals.length === 0) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '64px 24px', textAlign: 'center', border: '1.5px dashed var(--color-border)', borderRadius: 'var(--radius-lg)' }}>
+        <CheckCircle size={40} color="var(--color-green)" style={{ marginBottom: '16px' }} />
+        <p style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '15px', color: 'var(--color-ink-2)', marginBottom: '4px' }}>
+          No pending approvals
+        </p>
+        <p style={{ fontSize: '13px', color: 'var(--color-ink-3)' }}>All systems running.</p>
       </div>
+    )
+  }
 
-      {approvals.length === 0 ? (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px', textAlign: 'center' }}>
-          <CheckCircle size={48} color="var(--accent)" style={{ marginBottom: '16px' }} />
-          <p style={{ fontSize: '16px', color: 'var(--text-muted)' }}>No pending approvals</p>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-          {approvals.map(a => {
-            const payload = a.payload as Record<string, any>
-            const isProcessing = processingId === a.notification_id
-            const cardError = errorMap[a.notification_id]
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {approvals.map(a => {
+        const payload = a.payload as Record<string, any>
+        const config = TYPE_CONFIG[a.type] ?? DEFAULT_TYPE
+        const { main, detail } = buildMessage(a.type, payload)
+        const isProcessing = processingId === a.notification_id
+        const cardError = errorMap[a.notification_id]
 
-            return (
-              <div 
-                key={a.notification_id} 
-                style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  padding: '20px 0', 
-                  borderBottom: '1px solid var(--border)',
-                  opacity: isProcessing ? 0.5 : 1,
-                  pointerEvents: isProcessing ? 'none' : 'auto',
-                  position: 'relative'
+        return (
+          <div
+            key={a.notification_id}
+            style={{
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderLeft: `4px solid ${config.border}`,
+              borderRadius: 'var(--radius-lg)',
+              padding: '20px 24px',
+              boxShadow: 'var(--shadow-sm)',
+              opacity: isProcessing ? 0.5 : 1,
+              pointerEvents: isProcessing ? 'none' : 'auto',
+              transition: 'opacity 200ms ease',
+            }}
+          >
+            {/* Header row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <span style={{
+                background: config.bg,
+                color: config.color,
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                letterSpacing: '0.12em',
+                padding: '3px 8px',
+                borderRadius: 'var(--radius-pill)',
+              }}>
+                {config.label}
+              </span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-ink-3)' }}>
+                — {timeAgo(a.created_at)}
+              </span>
+            </div>
+
+            {/* Body */}
+            <p style={{ fontSize: '15px', color: 'var(--color-ink)', marginBottom: '6px', fontWeight: 400 }}>{main}</p>
+            {detail && (
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--color-ink-3)', lineHeight: 1.5 }}>{detail}</p>
+            )}
+
+            {cardError && (
+              <p style={{ fontSize: '12px', color: 'var(--color-red)', marginTop: '10px' }}>
+                Error: {cardError}
+              </p>
+            )}
+
+            {/* Action row */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+              <button
+                onClick={() => handleAction(a, 'reject')}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--color-border-mid)',
+                  color: 'var(--color-ink-2)',
+                  fontSize: '13px',
+                  fontFamily: 'var(--font-body)',
+                  fontWeight: 500,
+                  padding: '7px 16px',
+                  borderRadius: 'var(--radius-pill)',
+                  cursor: 'pointer',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>⚠️ Low Stock Alert</span>
-                      <span className="font-mono" style={{ fontSize: '12px', color: 'var(--text-muted)', background: 'var(--bg-start)', padding: '2px 8px', borderRadius: '4px' }}>{timeAgo(a.created_at)}</span>
-                    </div>
-                    
-                    <div style={{ fontSize: '14px', color: 'var(--text-primary)', marginTop: '8px', lineHeight: 1.5 }}>
-                      <span style={{ fontWeight: 600 }}>{payload.ingredient_name || 'Unknown Item'}</span> has dropped to <span className="font-mono">{payload.current_stock || '0'} {payload.unit}</span>. <br/>
-                      <span style={{ color: 'var(--text-muted)' }}>Reorder level: {payload.reorder_level || '0'} {payload.unit}. Supplier: {payload.supplier_name || 'Default Supplier'}.</span>
-                    </div>
-                  </div>
-                  
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <button 
-                      onClick={() => handleAction(a, 'reject')}
-                      style={{ background: 'transparent', border: '1px solid var(--border)', color: 'var(--destructive)', fontSize: '13px', fontWeight: 700, padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}
-                    >
-                      Reject
-                    </button>
-                    <button 
-                      onClick={() => handleAction(a, 'approve')}
-                      style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 700, padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}
-                    >
-                      Approve
-                    </button>
-                  </div>
-                </div>
-
-                {cardError && (
-                  <div style={{ color: 'var(--destructive)', fontSize: '12px', marginTop: '8px' }}>
-                    Error: {cardError}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
+                Reject
+              </button>
+              <button
+                onClick={() => handleAction(a, 'approve')}
+                className="btn-primary"
+                style={{ fontSize: '13px', padding: '7px 20px' }}
+              >
+                Approve
+              </button>
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
