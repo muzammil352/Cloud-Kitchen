@@ -85,7 +85,7 @@ BEGIN
         'kitchen_id',          NEW.kitchen_id,
         'previous_stock',      OLD.current_stock,
         'current_stock',       NEW.current_stock,
-        'reorder_threshold',   NEW.reorder_threshold,
+        'reorder_level',       NEW.reorder_level,
         'unit',                NEW.unit
       ),
       headers := '{"Content-Type": "application/json"}'::jsonb
@@ -103,33 +103,36 @@ CREATE TRIGGER trg_stockout_prediction_webhook
 
 -- ---------------------------------------------------------------
 -- 4. WASTAGE INTELLIGENCE (T3.3)
---    Fires on: wastage_log INSERT
+--    Fires on: stock_logs INSERT
 --    Lets N8N analyse wastage patterns and flag recurring issues.
 -- ---------------------------------------------------------------
 CREATE OR REPLACE FUNCTION _webhook_wastage_intelligence()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
-  PERFORM pg_net.http_post(
-    url     := 'https://n8n.devplusops.com/webhook/f5033b62-26b6-4076-a17d-6d76bad21611',
-    body    := jsonb_build_object(
-      'event',            'WASTAGE_LOGGED',
-      'table',            TG_TABLE_NAME,
-      'wastage_id',       NEW.wastage_id,
-      'kitchen_id',       NEW.kitchen_id,
-      'ingredient_id',    NEW.ingredient_id,
-      'quantity_wasted',  NEW.quantity_wasted,
-      'reason',           NEW.reason,
-      'logged_at',        NEW.created_at
-    ),
-    headers := '{"Content-Type": "application/json"}'::jsonb
-  );
+  -- Only fire for wastage (negative change_amount)
+  IF NEW.change_amount < 0 THEN
+    PERFORM pg_net.http_post(
+      url     := 'https://n8n.devplusops.com/webhook/f5033b62-26b6-4076-a17d-6d76bad21611',
+      body    := jsonb_build_object(
+        'event',            'WASTAGE_LOGGED',
+        'table',            TG_TABLE_NAME,
+        'log_id',           NEW.log_id,
+        'kitchen_id',       NEW.kitchen_id,
+        'ingredient_id',    NEW.ingredient_id,
+        'quantity_wasted',  ABS(NEW.change_amount),
+        'reason',           NEW.reason,
+        'logged_at',        NEW.created_at
+      ),
+      headers := '{"Content-Type": "application/json"}'::jsonb
+    );
+  END IF;
   RETURN NEW;
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_wastage_intelligence_webhook ON wastage_log;
+DROP TRIGGER IF EXISTS trg_wastage_intelligence_webhook ON stock_logs;
 CREATE TRIGGER trg_wastage_intelligence_webhook
-  AFTER INSERT ON wastage_log
+  AFTER INSERT ON stock_logs
   FOR EACH ROW EXECUTE FUNCTION _webhook_wastage_intelligence();
 
 
@@ -147,7 +150,7 @@ BEGIN
       url     := 'https://n8n.devplusops.com/webhook/39f2b6aa-e71b-441f-84cf-1c56cc7ca061',
       body    := jsonb_build_object(
         'event',           'LOW_STOCK_ALERT',
-        'notification_id', NEW.id,
+        'notification_id', NEW.notification_id,
         'kitchen_id',      NEW.kitchen_id,
         'payload',         NEW.payload,
         'created_at',      NEW.created_at
@@ -163,3 +166,4 @@ DROP TRIGGER IF EXISTS trg_smart_purchase_plan_webhook ON notifications_log;
 CREATE TRIGGER trg_smart_purchase_plan_webhook
   AFTER INSERT ON notifications_log
   FOR EACH ROW EXECUTE FUNCTION _webhook_smart_purchase_plan();
+

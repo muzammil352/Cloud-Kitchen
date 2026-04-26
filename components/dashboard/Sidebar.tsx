@@ -2,20 +2,21 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Users, BarChart2, UserCheck, Settings, LogOut, Store, User } from 'lucide-react'
+import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Users, BarChart2, UserCheck, Settings, LogOut, Store, User, Brain } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 
 const navItems = [
-  { name: 'Dashboard',  href: '/dashboard',           icon: LayoutDashboard },
-  { name: 'Orders',     href: '/dashboard/orders',     icon: ShoppingBag },
-  { name: 'Menu',       href: '/dashboard/menu',       icon: UtensilsCrossed },
-  { name: 'Storefront', href: '/storefront',           icon: Store },
-  { name: 'Customers',  href: '/dashboard/customers',  icon: Users },
-  { name: 'Reports',    href: '/dashboard/reports',    icon: BarChart2 },
-  { name: 'Approvals',  href: '/dashboard/approvals',  icon: UserCheck },
-  { name: 'Settings',   href: '/dashboard/settings',   icon: Settings },
+  { name: 'Dashboard',    href: '/dashboard',             icon: LayoutDashboard },
+  { name: 'Orders',       href: '/dashboard/orders',      icon: ShoppingBag },
+  { name: 'Menu',         href: '/dashboard/menu',        icon: UtensilsCrossed },
+  { name: 'Storefront',   href: '/storefront',            icon: Store },
+  { name: 'Customers',    href: '/dashboard/customers',   icon: Users },
+  { name: 'Reports',      href: '/dashboard/reports',     icon: BarChart2 },
+  { name: 'Intelligence', href: '/dashboard/intelligence',icon: Brain },
+  { name: 'Approvals',    href: '/dashboard/approvals',   icon: UserCheck },
+  { name: 'Settings',     href: '/dashboard/settings',    icon: Settings },
 ]
 
 export function Sidebar({

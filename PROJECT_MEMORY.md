@@ -30,6 +30,7 @@ app/
     menu/page.tsx             — Menu management (owner only)
     customers/page.tsx        — Customer list + detail panel
     reports/page.tsx          — Revenue, top items, satisfaction, stock reports
+    intelligence/page.tsx     — N8N Intelligence reports with manual triggers
     approvals/page.tsx        — Pending automation approvals
     settings/page.tsx         — Kitchen profile + notification channel + slug
   (customer)/
@@ -80,6 +81,7 @@ rewrites: [{ source: '/', destination: '/landing.html' }]
 - `ingredients` — `ingredient_id`, `kitchen_id`, `name`, `unit`, `current_stock`, `reorder_threshold`
 - `wastage_log` — `wastage_id`, `kitchen_id`, `ingredient_id`, `quantity_wasted`, `reason`, `created_at`
 - `feedback` — `feedback_id`, `order_id`, `kitchen_id`, `rating`, `comment`, `created_at`
+- `intelligence_reports` — `report_id`, `kitchen_id`, `type`, `title`, `summary`, `metrics`, `recommendations`, `created_at`
 
 ### Key RPC Function
 ```sql
@@ -235,6 +237,10 @@ Old names like `var(--accent)`, `var(--text-primary)`, `var(--text-muted)`, `var
 - Owner reviews pending automation actions (low_stock, win_back, upsell)
 - Approve/reject sends to N8N webhook via `/api/approve`
 
+### Intelligence (`/dashboard/intelligence`)
+- Owner views generated N8N intelligence reports (Margin Analysis, Weekly Forecast, etc.)
+- Manual trigger buttons to initiate N8N workflows via `/api/intelligence/trigger`
+
 ### KDS — Kitchen Display System (`/kitchen`)
 - Dark surface (Surface E)
 - Order queue for kitchen staff
@@ -285,6 +291,10 @@ SQL is in `supabase/webhooks.sql`. Run in Supabase SQL Editor once.
 | Wastage Intelligence (T3.3) | `trg_wastage_intelligence_webhook` | `wastage_log` | INSERT |
 | Smart Purchase Plan (T4.7) | `trg_smart_purchase_plan_webhook` | `notifications_log` | INSERT (low_stock only) |
 
+### Environment Variables
+| `N8N_WEBHOOK_URL` | `app/api/approve/route.ts`, `app/api/feedback/route.ts` | **Server-only** — no `NEXT_PUBLIC_` prefix. Must be set in Vercel. Previously called `NEXT_PUBLIC_N8N_WEBHOOK_URL` — that name is wrong and exposes the URL to clients. |
+| `N8N_MANUAL_TRIGGER_URL` | `app/api/intelligence/trigger/route.ts` | **Server-only** — used for triggering Intelligence reports manually from the UI. |
+
 ### Scheduled Webhook (Vercel Cron)
 - **Weekly Demand Forecast (T4.6)** — fires every Monday at 03:00 PKT (22:00 UTC Sunday)
 - Route: `app/api/cron/weekly-forecast/route.ts`
@@ -296,6 +306,7 @@ SQL is in `supabase/webhooks.sql`. Run in Supabase SQL Editor once.
 ```
 N8N_WEEKLY_FORECAST_URL=https://n8n.devplusops.com/webhook/a6d75856-be17-48a1-9ba7-a442d4faff34
 CRON_SECRET=<random secret string>
+N8N_MANUAL_TRIGGER_URL=<your manual trigger webhook url>
 ```
 
 ---
