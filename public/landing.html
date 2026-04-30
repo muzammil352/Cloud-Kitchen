@@ -18,12 +18,11 @@
   --border:rgba(26,25,23,0.08);--border-strong:rgba(26,25,23,0.14);
 }
 html{scroll-behavior:smooth}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;cursor:none}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
 
 /* ── CURSOR ── */
-#cursor{position:fixed;top:0;left:0;pointer-events:none;z-index:10000;transform:translate(-50%,-50%);will-change:transform;transition:opacity .2s}
-#cursor svg{display:block;transform:rotate(-30deg);transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
-#cursor.big svg{transform:rotate(-30deg) scale(1.25)}
+body{cursor:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj48ZGVmcz48ZmlsdGVyIGlkPSJkcyIgeD0iLTUwJSIgeT0iLTUwJSIgd2lkdGg9IjIwMCUiIGhlaWdodD0iMjAwJSI+PGZlRHJvcFNoYWRvdyBkeD0iMCIgZHk9IjEiIHN0ZERldmlhdGlvbj0iMSIgZmxvb2QtY29sb3I9IiMwMDAiIGZsb29kLW9wYWNpdHk9IjAuMzUiLz48L2ZpbHRlcj48L2RlZnM+PGcgdHJhbnNmb3JtPSJyb3RhdGUoLTMwLDE2LDE2KSIgZmlsdGVyPSJ1cmwoI2RzKSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTExMTEwIiBzdHJva2Utd2lkdGg9IjEuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48bGluZSB4MT0iOSIgeTE9IjMiIHgyPSI5IiB5Mj0iMTMiLz48bGluZSB4MT0iMTMuNSIgeTE9IjMiIHgyPSIxMy41IiB5Mj0iMTUiLz48bGluZSB4MT0iMTguNSIgeTE9IjMiIHgyPSIxOC41IiB5Mj0iMTUiLz48bGluZSB4MT0iMjMiIHkxPSIzIiB4Mj0iMjMiIHkyPSIxMyIvPjxwYXRoIGQ9Ik05IDEzUTkgMjAgMTYgMjEiLz48cGF0aCBkPSJNMTMuNSAxNVExMy41IDE5LjUgMTYgMjEiLz48cGF0aCBkPSJNMTguNSAxNVExOC41IDE5LjUgMTYgMjEiLz48cGF0aCBkPSJNMjMgMTNRMjMgMjAgMTYgMjEiLz48bGluZSB4MT0iMTYiIHkxPSIyMSIgeDI9IjE2IiB5Mj0iMjkiLz48L2c+PC9zdmc+") 3 8,auto}
+a,button,.nbtn,.pbtn,[role=button]{cursor:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj48ZGVmcz48ZmlsdGVyIGlkPSJkcyIgeD0iLTUwJSIgeT0iLTUwJSIgd2lkdGg9IjIwMCUiIGhlaWdodD0iMjAwJSI+PGZlRHJvcFNoYWRvdyBkeD0iMCIgZHk9IjEiIHN0ZERldmlhdGlvbj0iMSIgZmxvb2QtY29sb3I9IiMwMDAiIGZsb29kLW9wYWNpdHk9IjAuMzUiLz48L2ZpbHRlcj48L2RlZnM+PGcgdHJhbnNmb3JtPSJyb3RhdGUoLTMwLDE2LDE2KSIgZmlsdGVyPSJ1cmwoI2RzKSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjQzI0MTBDIiBzdHJva2Utd2lkdGg9IjEuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48bGluZSB4MT0iOSIgeTE9IjMiIHgyPSI5IiB5Mj0iMTMiLz48bGluZSB4MT0iMTMuNSIgeTE9IjMiIHgyPSIxMy41IiB5Mj0iMTUiLz48bGluZSB4MT0iMTguNSIgeT0iMyIgeDI9IjE4LjUiIHkyPSIxNSIvPjxsaW5lIHgxPSIyMyIgeTE9IjMiIHgyPSIyMyIgeTI9IjEzIi8+PHBhdGggZD0iTTkgMTNROSAyMCAxNiAyMSIvPjxwYXRoIGQ9Ik0xMy41IDE1UTEzLjUgMTkuNSAxNiAyMSIvPjxwYXRoIGQ9Ik0xOC41IDE1UTE4LjUgMTkuNSAxNiAyMSIvPjxwYXRoIGQ9Ik0yMyAxM1EyMyAyMCAxNiAyMSIvPjxsaW5lIHgxPSIxNiIgeTE9IjIxIiB4Mj0iMTYiIHkyPSIyOSIvPjwvZz48L3N2Zz4=") 3 8,pointer}
 
 /* ── NOISE ── */
 .noise{position:fixed;inset:0;pointer-events:none;z-index:9990;opacity:.04;
@@ -56,12 +55,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
 .nav-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .btn-ghost{background:transparent;border:1px solid var(--border-strong);color:var(--text);
   font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
-  padding:8px 16px;border-radius:100px;cursor:none;text-decoration:none;
+  padding:8px 16px;border-radius:100px;text-decoration:none;
   display:inline-flex;align-items:center;transition:border-color .2s,background .2s}
 .btn-ghost:hover{background:rgba(26,25,23,.05);border-color:rgba(26,25,23,.28)}
 .btn-accent{background:var(--accent);border:none;color:#fff;
   font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
-  padding:8px 18px;border-radius:100px;cursor:none;text-decoration:none;
+  padding:8px 18px;border-radius:100px;text-decoration:none;
   display:inline-flex;align-items:center;gap:6px;transition:background .2s,transform .15s}
 .btn-accent:hover{background:#bf4717;transform:translateY(-1px)}
 
@@ -86,13 +85,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
 .hero-ctas{display:flex;align-items:center;gap:12px;margin-bottom:28px;flex-wrap:wrap;
   opacity:0;transform:translateY(20px)}
 .btn-hp{background:var(--accent);border:none;color:#fff;font-family:'DM Sans',sans-serif;
-  font-size:15px;font-weight:600;padding:14px 26px;border-radius:100px;cursor:none;
+  font-size:15px;font-weight:600;padding:14px 26px;border-radius:100px;
   display:inline-flex;align-items:center;gap:8px;text-decoration:none;
   transition:background .2s,transform .15s,box-shadow .2s}
 .btn-hp:hover{background:#bf4717;transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,83,26,.3)}
 .btn-hg{background:transparent;border:1.5px solid var(--border-strong);color:var(--text);
   font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;
-  padding:13px 24px;border-radius:100px;cursor:none;text-decoration:none;
+  padding:13px 24px;border-radius:100px;text-decoration:none;
   display:inline-flex;align-items:center;gap:8px;transition:border-color .2s,background .2s}
 .btn-hg:hover{background:rgba(26,25,23,.05);border-color:rgba(26,25,23,.35)}
 .trust{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
@@ -144,7 +143,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
 .nt{font-size:10px;color:var(--text);flex:1;line-height:1.4}
 .nbtns{display:flex;gap:4px;flex-shrink:0}
 .nbtn{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;
-  padding:4px 8px;border-radius:5px;border:none;cursor:none}
+  padding:4px 8px;border-radius:5px;border:none}
 .nbtn.ap{background:var(--success);color:#fff}
 .nbtn.rj{background:var(--border);color:var(--muted)}
 
@@ -290,7 +289,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
 .pdesc{font-size:14px;line-height:1.7;color:var(--muted);margin-bottom:32px;min-height:76px}
 .pcard.feat .pdesc{color:rgba(255,255,255,.45)}
 .pbtn{display:block;width:100%;text-align:center;padding:14px;border-radius:100px;
-  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:none;
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
   text-decoration:none;transition:background .2s,transform .15s;border:none}
 .pbtn.out{border:1.5px solid rgba(26,25,23,.2);background:transparent;color:var(--text)}
 .pbtn.out:hover{background:rgba(26,25,23,.05)}
@@ -322,8 +321,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
 
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
-  *{cursor:auto!important}
-  #cursor{display:none}
   #nav{width:calc(100% - 24px);top:12px;padding:9px 14px}
   .nav-links{display:none}
   #hero{padding:96px 20px 60px}
@@ -345,21 +342,6 @@ section{scroll-margin-top:80px}
 <body>
 
 <div class="noise" aria-hidden="true"></div>
-<div id="cursor" aria-hidden="true">
-  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="50" viewBox="0 0 26 50">
-    <!-- 4 tines -->
-    <rect x="2"    y="0" width="3" height="19" rx="1.5" fill="#D4531A"/>
-    <rect x="7.5"  y="0" width="3" height="19" rx="1.5" fill="#D4531A"/>
-    <rect x="13"   y="0" width="3" height="19" rx="1.5" fill="#D4531A"/>
-    <rect x="18.5" y="0" width="3" height="19" rx="1.5" fill="#D4531A"/>
-    <!-- Neck curving from tine bases to handle -->
-    <path d="M2 16 C2 27 9 31 13 31 C17 31 24 27 24 16 Z" fill="#D4531A"/>
-    <!-- Handle -->
-    <rect x="11" y="29" width="4" height="20" rx="2" fill="#D4531A"/>
-    <!-- Handle highlight -->
-    <rect x="12.5" y="30" width="1.5" height="16" rx="0.75" fill="rgba(255,255,255,0.15)"/>
-  </svg>
-</div>
 
 <!-- ═══════════════════════════════════════════ NAVBAR -->
 <nav id="nav" role="navigation" aria-label="Main navigation">
@@ -722,18 +704,6 @@ section{scroll-margin-top:80px}
 gsap.registerPlugin(ScrollTrigger);
 lucide.createIcons();
 
-/* ── CURSOR ── */
-(function(){
-  if(window.innerWidth<=768)return;
-  const cursor=document.getElementById('cursor');
-  window.addEventListener('mousemove',e=>{
-    gsap.set(cursor,{x:e.clientX,y:e.clientY});
-  },{passive:true});
-  document.querySelectorAll('a,button').forEach(el=>{
-    el.addEventListener('mouseenter',()=>cursor.classList.add('big'));
-    el.addEventListener('mouseleave',()=>cursor.classList.remove('big'));
-  });
-})();
 
 /* ── NAVBAR SCROLL ── */
 (function(){

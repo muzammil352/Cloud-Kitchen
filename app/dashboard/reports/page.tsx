@@ -1,13 +1,174 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { formatCurrency } from '@/lib/utils'
+import { InventoryToggle } from '@/components/dashboard/InventoryToggle'
+import {
+  ChefHat, PackageOpen, AlertTriangle, Trash2, TrendingUp, ShoppingCart,
+} from 'lucide-react'
 
 export const revalidate = 0
 
-// Strict Server Component resolving entirely natively. NO USER STATE. NO CLIENT HOOKS.
+// ── helpers ────────────────────────────────────────────────────────────────
+
+function fmtReportDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-PK', {
+    day: 'numeric', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
+function statusPill(generatedAt: string | null | undefined): {
+  label: string; color: string; bg: string
+} {
+  if (!generatedAt) return { label: '● No data', color: 'var(--color-ink-3)', bg: 'var(--color-surface-2)' }
+  const ageH = (Date.now() - new Date(generatedAt).getTime()) / 3_600_000
+  if (ageH <= 25) return { label: '● Live', color: 'var(--color-green)', bg: 'var(--color-green-bg)' }
+  return { label: '● Stale', color: 'var(--color-amber)', bg: 'var(--color-amber-bg)' }
+}
+
+// Shared card sub-components (inline, server-safe) ──────────────────────────
+
+function Chip({
+  label, value, color, bg,
+}: { label: string; value: string | number; color?: string; bg?: string }) {
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: '5px',
+      padding: '3px 10px', borderRadius: 'var(--radius-pill)',
+      fontSize: '12px', fontFamily: 'var(--font-mono)',
+      background: bg ?? 'var(--color-surface-2)',
+      color: color ?? 'var(--color-ink-2)',
+      whiteSpace: 'nowrap',
+    }}>
+      <span style={{ fontWeight: 600 }}>{value}</span>
+      <span style={{ color: color ? `${color}99` : 'var(--color-ink-3)' }}>{label}</span>
+    </span>
+  )
+}
+
+function Blockquote({ text, lines = 4 }: { text: string; lines?: number }) {
+  return (
+    <blockquote style={{
+      borderLeft: '3px solid var(--color-border-mid)',
+      paddingLeft: '12px',
+      margin: 0,
+      fontSize: '13px',
+      color: 'var(--color-ink-3)',
+      fontStyle: 'italic',
+      lineHeight: 1.6,
+      overflow: 'hidden',
+      display: '-webkit-box',
+      WebkitLineClamp: lines,
+      WebkitBoxOrient: 'vertical',
+    }}>
+      {text}
+    </blockquote>
+  )
+}
+
+function EmptyState() {
+  return (
+    <div style={{
+      border: '1.5px dashed var(--color-border-mid)',
+      borderRadius: 'var(--radius-md)',
+      padding: '20px 16px',
+      textAlign: 'center',
+    }}>
+      <p style={{ fontSize: '14px', color: 'var(--color-ink-3)', marginBottom: '4px' }}>
+        No report generated yet.
+      </p>
+      <p style={{ fontSize: '12px', color: 'var(--color-ink-3)' }}>
+        Run the workflow to see insights here.
+      </p>
+    </div>
+  )
+}
+
+function ReportCTA({ pdfUrl }: { pdfUrl: string | null | undefined }) {
+  if (pdfUrl) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'auto' }}>
+        <a
+          href={pdfUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '4px',
+            padding: '7px 14px', borderRadius: 'var(--radius-pill)',
+            border: '1px solid var(--color-border-mid)',
+            fontSize: '12px', fontFamily: 'var(--font-body)',
+            color: 'var(--color-ink)', textDecoration: 'none',
+            background: 'transparent',
+            transition: 'background var(--transition)',
+          }}
+        >
+          View Full Report →
+        </a>
+      </div>
+    )
+  }
+  return (
+    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'auto' }}>
+      <button
+        disabled
+        title="Report not yet generated"
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '4px',
+          padding: '7px 14px', borderRadius: 'var(--radius-pill)',
+          border: '1px solid var(--color-border)',
+          fontSize: '12px', fontFamily: 'var(--font-body)',
+          color: 'var(--color-ink-3)',
+          background: 'transparent',
+          opacity: 0.5, cursor: 'not-allowed',
+        }}
+      >
+        View Full Report →
+      </button>
+    </div>
+  )
+}
+
+function CardHeader({
+  icon, title, generatedAt,
+}: {
+  icon: React.ReactNode
+  title: string
+  generatedAt: string | null | undefined
+}) {
+  const pill = statusPill(generatedAt)
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', minWidth: 0 }}>
+        <span style={{ color: 'var(--color-ink-3)', marginTop: '1px', flexShrink: 0 }}>
+          {icon}
+        </span>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '14px', color: 'var(--color-ink)' }}>
+            {title}
+          </div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-ink-3)', marginTop: '2px' }}>
+            {generatedAt ? `Last generated: ${fmtReportDate(generatedAt)}` : 'Never generated'}
+          </div>
+        </div>
+      </div>
+      <span style={{
+        display: 'inline-flex', alignItems: 'center',
+        padding: '3px 8px', borderRadius: 'var(--radius-pill)',
+        fontSize: '11px', fontFamily: 'var(--font-mono)',
+        letterSpacing: '0.05em', whiteSpace: 'nowrap', flexShrink: 0, marginTop: '1px',
+        color: pill.color, background: pill.bg,
+      }}>
+        {pill.label}
+      </span>
+    </div>
+  )
+}
+
+// ── Page ───────────────────────────────────────────────────────────────────
+
 export default async function ReportsPage() {
   const supabase = createClient()
-  
+
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -16,7 +177,7 @@ export default async function ReportsPage() {
     .select('kitchen_id, role')
     .eq('user_id', user.id)
     .single()
-    
+
   if (!profile || profile.role !== 'owner') {
     redirect('/dashboard') // Route guarding ensuring only Owners view analytical data
   }
@@ -100,6 +261,107 @@ export default async function ReportsPage() {
 
   const stockList = ingredients || []
 
+  // ── INVENTORY INTELLIGENCE queries (all parallel) ────────────────────────
+  const [
+    menuCostingRes, menuItemsCountRes,
+    inventoryTotalsRes, inventoryValueRes,
+    stockoutReportRes, stockoutForecastRes,
+    wastageReportRes, wastageIntelRes,
+    weeklyDemandRes,
+    purchasePlanReportRes, purchasePlanUrgentRes,
+  ] = await Promise.all([
+    supabase.from('menu_costing_report')
+      .select('generated_at,owner_report,pdf_url')
+      .eq('kitchen_id', kitchenId)
+      .order('generated_at', { ascending: false })
+      .limit(1).maybeSingle(),
+
+    supabase.from('menu_items')
+      .select('menu_item_id', { count: 'exact', head: true })
+      .eq('kitchen_id', kitchenId),
+
+    supabase.from('inventory_totals')
+      .select('total_inventory_value,items_below_reorder,top_3_cash_locked,calculated_at')
+      .eq('kitchen_id', kitchenId)
+      .order('calculated_at', { ascending: false })
+      .limit(1).maybeSingle(),
+
+    supabase.from('inventory_value')
+      .select('ingredient_name,current_stock,unit,stock_value,reorder_status')
+      .eq('kitchen_id', kitchenId)
+      .order('stock_value', { ascending: false })
+      .limit(8),
+
+    supabase.from('stockout_report')
+      .select('generated_at,owner_report,pdf_url')
+      .eq('kitchen_id', kitchenId)
+      .order('generated_at', { ascending: false })
+      .limit(1).maybeSingle(),
+
+    supabase.from('stockout_forecast')
+      .select('status')
+      .eq('kitchen_id', kitchenId),
+
+    supabase.from('wastage_report')
+      .select('generated_at,owner_report,pdf_url')
+      .eq('kitchen_id', kitchenId)
+      .order('generated_at', { ascending: false })
+      .limit(1).maybeSingle(),
+
+    supabase.from('wastage_intelligence')
+      .select('flag')
+      .eq('kitchen_id', kitchenId),
+
+    supabase.from('weekly_demand_report')
+      .select('generated_at,owner_report,pdf_url')
+      .eq('kitchen_id', kitchenId)
+      .order('generated_at', { ascending: false })
+      .limit(1).maybeSingle(),
+
+    supabase.from('purchase_plan_report')
+      .select('generated_at,owner_report,pdf_url')
+      .eq('kitchen_id', kitchenId)
+      .order('generated_at', { ascending: false })
+      .limit(1).maybeSingle(),
+
+    supabase.from('purchase_plan')
+      .select('urgency')
+      .eq('kitchen_id', kitchenId)
+      .eq('urgency', 'URGENT'),
+  ])
+
+  // ── derived values ────────────────────────────────────────────────────────
+  const menuCostingReport  = menuCostingRes.data
+  const menuItemsCount     = menuItemsCountRes.count ?? 0
+  const inventoryTotals    = inventoryTotalsRes.data
+  const inventoryValueRows = inventoryValueRes.data ?? []
+  const stockoutReport     = stockoutReportRes.data
+  const stockoutCritical   = (stockoutForecastRes.data ?? []).filter((r: any) => r.status === 'CRITICAL').length
+  const stockoutWarning    = (stockoutForecastRes.data ?? []).filter((r: any) => r.status === 'WARNING').length
+  const wastageReport      = wastageReportRes.data
+  const highWastageCount   = (wastageIntelRes.data ?? []).filter((r: any) => r.flag === 'CRITICAL' || r.flag === 'HIGH').length
+  const weeklyDemandReport = weeklyDemandRes.data
+  const purchasePlanReport = purchasePlanReportRes.data
+  const urgentPurchaseCount = (purchasePlanUrgentRes.data ?? []).length
+
+  const top3CashLocked: { name: string; value: number }[] = Array.isArray(inventoryTotals?.top_3_cash_locked)
+    ? (inventoryTotals!.top_3_cash_locked as any[]).slice(0, 3)
+    : []
+
+  const allReportDates = [
+    menuCostingReport?.generated_at,
+    inventoryTotals?.calculated_at,
+    stockoutReport?.generated_at,
+    wastageReport?.generated_at,
+    weeklyDemandReport?.generated_at,
+    purchasePlanReport?.generated_at,
+  ].filter(Boolean) as string[]
+  const lastUpdated = allReportDates.length > 0
+    ? [...allReportDates].sort().pop()!
+    : null
+
+  // ── render ────────────────────────────────────────────────────────────────
+
   return (
     <div style={{ opacity: 0, animation: 'fadeIn 300ms forwards', paddingBottom: '48px' }}>
       <style>{`.chart-bar-hover:hover .chart-tooltip { opacity: 1; }`}</style>
@@ -116,7 +378,7 @@ export default async function ReportsPage() {
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
-          
+
           {/* Revenue Chart */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
             <h2 style={{ fontSize: '15px', fontWeight: 500, fontFamily: 'var(--font-body)', color: 'var(--color-ink)', marginBottom: '24px' }}>30-Day Revenue Trend</h2>
@@ -243,7 +505,7 @@ export default async function ReportsPage() {
                       const reorder = item.reorder_level || 0
                       const isCritical = item.current_stock <= 0
                       const isLow = !isCritical && item.current_stock <= reorder
-                      
+
                       let statusBadge = 'badge-green'
                       let statusText = 'OK'
                       if (isCritical) { statusBadge = 'badge-red'; statusText = 'CRITICAL' }
@@ -268,9 +530,239 @@ export default async function ReportsPage() {
               </table>
             </div>
           </div>
-          
+
         </div>
       )}
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          INVENTORY INTELLIGENCE — appended below existing content
+          ═══════════════════════════════════════════════════════════════════ */}
+      <div style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid var(--color-border)' }}>
+
+        {/* Section header */}
+        <div style={{ marginBottom: '28px' }}>
+          <h2 style={{
+            fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '18px',
+            color: 'var(--color-ink)', marginBottom: '4px',
+          }}>
+            Inventory Intelligence
+          </h2>
+          {lastUpdated ? (
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-ink-3)' }}>
+              Last updated: {fmtReportDate(lastUpdated)}
+            </p>
+          ) : (
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-ink-3)' }}>
+              No reports generated yet — run N8N workflows to populate.
+            </p>
+          )}
+        </div>
+
+        {/* ── Group 1: Financial Health ─────────────────────────────────── */}
+        <div style={{ marginBottom: '32px' }}>
+          <p style={{
+            fontFamily: 'var(--font-mono)', fontSize: '10px', textTransform: 'uppercase',
+            letterSpacing: '0.12em', color: 'var(--color-ink-3)', marginBottom: '14px',
+          }}>
+            Financial Health
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
+
+            {/* Card A — Menu Costing & Margin Analysis */}
+            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <CardHeader
+                icon={<ChefHat size={15} strokeWidth={1.5} />}
+                title="Menu Costing & Margin Analysis"
+                generatedAt={menuCostingReport?.generated_at}
+              />
+
+              {!menuCostingReport ? <EmptyState /> : (
+                <>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    <Chip label="menu items" value={menuItemsCount} />
+                  </div>
+
+                  <Blockquote text={menuCostingReport.owner_report} lines={4} />
+
+                  <ReportCTA pdfUrl={menuCostingReport.pdf_url} />
+                </>
+              )}
+            </div>
+
+            {/* Card B — Inventory Value */}
+            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <CardHeader
+                icon={<PackageOpen size={15} strokeWidth={1.5} />}
+                title="Inventory Value"
+                generatedAt={inventoryTotals?.calculated_at}
+              />
+
+              {!inventoryTotals ? <EmptyState /> : (
+                <>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '5px',
+                      padding: '4px 12px', borderRadius: 'var(--radius-pill)',
+                      fontSize: '13px', fontFamily: 'var(--font-mono)', fontWeight: 600,
+                      background: 'var(--color-accent-bg)', color: 'var(--color-accent)',
+                    }}>
+                      {formatCurrency(inventoryTotals.total_inventory_value ?? 0)}
+                    </span>
+                    <Chip
+                      label="below reorder"
+                      value={inventoryTotals.items_below_reorder ?? 0}
+                      color={(inventoryTotals.items_below_reorder ?? 0) > 0 ? 'var(--color-amber)' : 'var(--color-green)'}
+                      bg={(inventoryTotals.items_below_reorder ?? 0) > 0 ? 'var(--color-amber-bg)' : 'var(--color-green-bg)'}
+                    />
+                  </div>
+
+                  {/* Top 3 cash-locked */}
+                  {top3CashLocked.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {top3CashLocked.map((item, i) => (
+                        <div key={i} style={{
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                          padding: '6px 0',
+                          borderBottom: i < top3CashLocked.length - 1 ? '1px solid var(--color-border)' : 'none',
+                        }}>
+                          <span style={{ fontSize: '13px', color: 'var(--color-ink)', fontWeight: 500 }}>
+                            {item.name}
+                          </span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--color-ink-2)' }}>
+                            {formatCurrency(item.value)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Collapsible full table */}
+                  <InventoryToggle rows={inventoryValueRows} />
+
+                  <ReportCTA pdfUrl={null} />
+                </>
+              )}
+            </div>
+
+          </div>
+        </div>
+
+        {/* ── Group 2: Operations & Supply ──────────────────────────────── */}
+        <div>
+          <p style={{
+            fontFamily: 'var(--font-mono)', fontSize: '10px', textTransform: 'uppercase',
+            letterSpacing: '0.12em', color: 'var(--color-ink-3)', marginBottom: '14px',
+          }}>
+            Operations &amp; Supply
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+
+            {/* Card C — Stockout Prediction */}
+            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <CardHeader
+                icon={<AlertTriangle size={15} strokeWidth={1.5} />}
+                title="Stockout Prediction"
+                generatedAt={stockoutReport?.generated_at}
+              />
+
+              {!stockoutReport ? <EmptyState /> : (
+                <>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    <Chip
+                      label="Critical"
+                      value={stockoutCritical}
+                      color={stockoutCritical > 0 ? 'var(--color-red)' : 'var(--color-ink-3)'}
+                      bg={stockoutCritical > 0 ? 'var(--color-red-bg)' : 'var(--color-surface-2)'}
+                    />
+                    <Chip
+                      label="Warning"
+                      value={stockoutWarning}
+                      color={stockoutWarning > 0 ? 'var(--color-amber)' : 'var(--color-ink-3)'}
+                      bg={stockoutWarning > 0 ? 'var(--color-amber-bg)' : 'var(--color-surface-2)'}
+                    />
+                  </div>
+
+                  <Blockquote text={stockoutReport.owner_report} lines={4} />
+
+                  <ReportCTA pdfUrl={stockoutReport.pdf_url} />
+                </>
+              )}
+            </div>
+
+            {/* Card D — Wastage Intelligence */}
+            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <CardHeader
+                icon={<Trash2 size={15} strokeWidth={1.5} />}
+                title="Wastage Intelligence"
+                generatedAt={wastageReport?.generated_at}
+              />
+
+              {!wastageReport ? <EmptyState /> : (
+                <>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    <Chip
+                      label="High Wastage Items"
+                      value={highWastageCount}
+                      color={highWastageCount > 0 ? 'var(--color-red)' : 'var(--color-ink-3)'}
+                      bg={highWastageCount > 0 ? 'var(--color-red-bg)' : 'var(--color-surface-2)'}
+                    />
+                  </div>
+
+                  <Blockquote text={wastageReport.owner_report} lines={4} />
+
+                  <ReportCTA pdfUrl={wastageReport.pdf_url} />
+                </>
+              )}
+            </div>
+
+            {/* Card E — Weekly Demand Forecast */}
+            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <CardHeader
+                icon={<TrendingUp size={15} strokeWidth={1.5} />}
+                title="Weekly Demand Forecast"
+                generatedAt={weeklyDemandReport?.generated_at}
+              />
+
+              {!weeklyDemandReport ? <EmptyState /> : (
+                <>
+                  <Blockquote text={weeklyDemandReport.owner_report} lines={5} />
+
+                  <ReportCTA pdfUrl={weeklyDemandReport.pdf_url} />
+                </>
+              )}
+            </div>
+
+            {/* Card F — Smart Purchase Plan */}
+            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <CardHeader
+                icon={<ShoppingCart size={15} strokeWidth={1.5} />}
+                title="Smart Purchase Plan"
+                generatedAt={purchasePlanReport?.generated_at}
+              />
+
+              {!purchasePlanReport ? <EmptyState /> : (
+                <>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    <Chip
+                      label="Urgent Orders"
+                      value={urgentPurchaseCount}
+                      color={urgentPurchaseCount > 0 ? 'var(--color-red)' : 'var(--color-green)'}
+                      bg={urgentPurchaseCount > 0 ? 'var(--color-red-bg)' : 'var(--color-green-bg)'}
+                    />
+                  </div>
+
+                  <Blockquote text={purchasePlanReport.owner_report} lines={4} />
+
+                  <ReportCTA pdfUrl={purchasePlanReport.pdf_url} />
+                </>
+              )}
+            </div>
+
+          </div>
+        </div>
+      </div>
+      {/* ── end Inventory Intelligence ───────────────────────────────────── */}
+
     </div>
   )
 }
