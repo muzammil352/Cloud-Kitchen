@@ -45,34 +45,15 @@ export default function SignupPage() {
       return
     }
 
-    const { data: kitchen, error: kitchenError } = await supabase
-      .from('kitchens')
-      .insert({
-        owner_user_id: user.id,
-        name: kitchenName,
-        email: email,
-        settings: { notify_channel: 'email' },
-      })
-      .select('kitchen_id')
-      .single()
+    const res = await fetch('/api/onboarding', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kitchenName, firstName, lastName, email }),
+    })
 
-    if (kitchenError) {
-      setError('Account created but kitchen setup failed. Please contact support.')
-      setIsLoading(false)
-      return
-    }
-
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({
-        user_id: user.id,
-        kitchen_id: kitchen.kitchen_id,
-        role: 'owner',
-        name: `${firstName} ${lastName}`.trim(),
-      })
-
-    if (profileError) {
-      setError('Account created but profile setup failed. Please contact support.')
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      setError(json.error || 'Account created but setup failed. Please try signing in.')
       setIsLoading(false)
       return
     }
