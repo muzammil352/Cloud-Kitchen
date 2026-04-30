@@ -21,10 +21,9 @@ html{scroll-behavior:smooth}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;cursor:none}
 
 /* ── CURSOR ── */
-#cdot,#cring{position:fixed;border-radius:50%;pointer-events:none;z-index:10000;transform:translate(-50%,-50%)}
-#cdot{width:8px;height:8px;background:var(--accent)}
-#cring{width:32px;height:32px;border:1.5px solid var(--accent);transition:width .25s,height .25s,background .25s,border-color .25s}
-#cring.big{width:56px;height:56px;background:rgba(212,83,26,.08)}
+#cursor{position:fixed;top:0;left:0;pointer-events:none;z-index:10000;transform:translate(-50%,-50%);will-change:transform;transition:opacity .2s}
+#cursor svg{display:block;transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+#cursor.big svg{transform:scale(1.25)}
 
 /* ── NOISE ── */
 .noise{position:fixed;inset:0;pointer-events:none;z-index:9990;opacity:.04;
@@ -324,7 +323,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
   *{cursor:auto!important}
-  #cdot,#cring{display:none}
+  #cursor{display:none}
   #nav{width:calc(100% - 24px);top:12px;padding:9px 14px}
   .nav-links{display:none}
   #hero{padding:96px 20px 60px}
@@ -346,8 +345,13 @@ section{scroll-margin-top:80px}
 <body>
 
 <div class="noise" aria-hidden="true"></div>
-<div id="cdot" aria-hidden="true"></div>
-<div id="cring" aria-hidden="true"></div>
+<div id="cursor" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="46" viewBox="0 0 22 46">
+    <circle cx="11" cy="11" r="10" fill="#D4531A"/>
+    <path d="M9 19 L9 43 C9 44.1 9.9 45 11 45 C12.1 45 13 44.1 13 43 L13 19 Z" fill="#D4531A"/>
+    <ellipse cx="8" cy="8" rx="4" ry="4.5" fill="rgba(255,255,255,0.18)"/>
+  </svg>
+</div>
 
 <!-- ═══════════════════════════════════════════ NAVBAR -->
 <nav id="nav" role="navigation" aria-label="Main navigation">
@@ -713,15 +717,13 @@ lucide.createIcons();
 /* ── CURSOR ── */
 (function(){
   if(window.innerWidth<=768)return;
-  const dot=document.getElementById('cdot'),ring=document.getElementById('cring');
-  const xd=gsap.quickTo(dot,'x',{duration:.08,ease:'none'});
-  const yd=gsap.quickTo(dot,'y',{duration:.08,ease:'none'});
-  const xr=gsap.quickTo(ring,'x',{duration:.35,ease:'power3'});
-  const yr=gsap.quickTo(ring,'y',{duration:.35,ease:'power3'});
-  window.addEventListener('mousemove',e=>{xd(e.clientX);yd(e.clientY);xr(e.clientX);yr(e.clientY)},{passive:true});
+  const cursor=document.getElementById('cursor');
+  window.addEventListener('mousemove',e=>{
+    gsap.set(cursor,{x:e.clientX,y:e.clientY});
+  },{passive:true});
   document.querySelectorAll('a,button').forEach(el=>{
-    el.addEventListener('mouseenter',()=>ring.classList.add('big'));
-    el.addEventListener('mouseleave',()=>ring.classList.remove('big'));
+    el.addEventListener('mouseenter',()=>cursor.classList.add('big'));
+    el.addEventListener('mouseleave',()=>cursor.classList.remove('big'));
   });
 })();
 
