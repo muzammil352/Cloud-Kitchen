@@ -22,8 +22,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
 
 /* ── CURSOR ── */
 #cursor{position:fixed;top:0;left:0;pointer-events:none;z-index:10000;transform:translate(-50%,-50%);will-change:transform;transition:opacity .2s}
-#cursor svg{display:block;transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
-#cursor.big svg{transform:scale(1.25)}
+#cursor svg{display:block;transform:rotate(-30deg);transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+#cursor.big svg{transform:rotate(-30deg) scale(1.25)}
 
 /* ── NOISE ── */
 .noise{position:fixed;inset:0;pointer-events:none;z-index:9990;opacity:.04;
@@ -346,10 +346,18 @@ section{scroll-margin-top:80px}
 
 <div class="noise" aria-hidden="true"></div>
 <div id="cursor" aria-hidden="true">
-  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="46" viewBox="0 0 22 46">
-    <circle cx="11" cy="11" r="10" fill="#D4531A"/>
-    <path d="M9 19 L9 43 C9 44.1 9.9 45 11 45 C12.1 45 13 44.1 13 43 L13 19 Z" fill="#D4531A"/>
-    <ellipse cx="8" cy="8" rx="4" ry="4.5" fill="rgba(255,255,255,0.18)"/>
+  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="50" viewBox="0 0 26 50">
+    <!-- 4 tines -->
+    <rect x="2"    y="0" width="3" height="19" rx="1.5" fill="#D4531A"/>
+    <rect x="7.5"  y="0" width="3" height="19" rx="1.5" fill="#D4531A"/>
+    <rect x="13"   y="0" width="3" height="19" rx="1.5" fill="#D4531A"/>
+    <rect x="18.5" y="0" width="3" height="19" rx="1.5" fill="#D4531A"/>
+    <!-- Neck curving from tine bases to handle -->
+    <path d="M2 16 C2 27 9 31 13 31 C17 31 24 27 24 16 Z" fill="#D4531A"/>
+    <!-- Handle -->
+    <rect x="11" y="29" width="4" height="20" rx="2" fill="#D4531A"/>
+    <!-- Handle highlight -->
+    <rect x="12.5" y="30" width="1.5" height="16" rx="0.75" fill="rgba(255,255,255,0.15)"/>
   </svg>
 </div>
 
