@@ -16,16 +16,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid feedback data' }, { status: 400 })
     }
 
-    const n8nUrl = process.env.N8N_WEBHOOK_URL
-    if (!n8nUrl) {
-      return NextResponse.json({ success: true })
+    const feedbackIntakeUrl = process.env.N8N_FEEDBACK_INTAKE
+    if (feedbackIntakeUrl) {
+      await fetch(feedbackIntakeUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(parsed.data),
+      }).catch(err => console.error('Feedback intake webhook failed:', err))
     }
-
-    await fetch(`${n8nUrl.replace(/\/$/, '')}/feedback`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(parsed.data),
-    })
 
     if (parsed.data.rating <= 2) {
       const complaintUrl = process.env.N8N_WF6_COMPLAINT

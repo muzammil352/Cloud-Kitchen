@@ -153,7 +153,25 @@ export function OrderGrid({ initialOrders, kitchenId }: { initialOrders: Order[]
       
     if (error) {
       console.error("Critical: Failed to explicitly march status natively", error)
-    } else if (nextState === 'delivered') {
+    } else {
+      const statusUrl = process.env.NEXT_PUBLIC_N8N_STATUS_UPDATE
+      if (statusUrl) {
+        fetch(statusUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            order_id: order.order_id,
+            kitchen_id: order.kitchen_id,
+            customer_id: order.customer_id,
+            old_status: order.status,
+            new_status: nextState,
+            timestamp: new Date().toISOString(),
+          }),
+        }).catch(console.error)
+      }
+    }
+
+    if (!error && nextState === 'delivered') {
       const itemNames = order.order_items?.map((i: any) => i.menu_items?.name || 'Item') || []
       const kitchen_id = order.kitchen_id
       const customer_id = order.customer_id
