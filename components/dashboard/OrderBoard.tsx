@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Order, OrderStatus } from '@/lib/types'
 import { formatCurrency, shortId } from '@/lib/utils'
+import { updateOrderStatus } from '@/app/dashboard/orders/actions'
 
 const ALL_STATUSES: OrderStatus[] = [
   'pending', 'confirmed', 'preparing', 'ready',
@@ -96,17 +97,14 @@ export function OrderBoard({ initialOrders, kitchenId }: { initialOrders: Order[
     setUpdatingIds(prev => new Set(prev).add(order.order_id))
     setOrders(prev => prev.map(o => o.order_id === order.order_id ? { ...o, status: newStatus } : o))
 
-    const { error } = await supabase
-      .from('orders')
-      .update({ status: newStatus })
-      .eq('order_id', order.order_id)
+    const { error } = await updateOrderStatus(order.order_id, newStatus)
 
     setUpdatingIds(prev => { const s = new Set(prev); s.delete(order.order_id); return s })
 
     if (error) {
       console.error('Order update failed:', order.order_id, error)
       setOrders(prev => prev.map(o => o.order_id === order.order_id ? { ...o, status: oldStatus } : o))
-      alert(`Failed to update order status.\nCode: ${error.code}\nMessage: ${error.message}`)
+      alert(`Failed to update order status: ${error}`)
     } else {
       pushN8NStatus(order, oldStatus, newStatus)
     }
@@ -123,10 +121,7 @@ export function OrderBoard({ initialOrders, kitchenId }: { initialOrders: Order[
     let failed = 0
     for (const orderId of ids) {
       const order = previousOrders.find(o => o.order_id === orderId)
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: newStatus })
-        .eq('order_id', orderId)
+      const { error } = await updateOrderStatus(orderId, newStatus)
 
       if (error) {
         console.error('Bulk update failed:', orderId, error)
