@@ -107,8 +107,10 @@ export type Ingredient = {
   ingredient_id: string
   kitchen_id: string
   name: string
+  category: string | null
   current_stock: number
   reorder_level: number | null
+  ideal_stock: number | null
   unit: string
   created_at: string
 }
