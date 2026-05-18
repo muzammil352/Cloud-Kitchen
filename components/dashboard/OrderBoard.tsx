@@ -117,7 +117,7 @@ export function OrderBoard({ initialOrders, kitchenId }: { initialOrders: Order[
     const previousOrders = orders
     const bulkUpdating = new Set(ids)
 
-    setUpdatingIds(prev => new Set([...prev, ...bulkUpdating]))
+    setUpdatingIds(prev => new Set(Array.from(prev).concat(Array.from(bulkUpdating))))
     setOrders(prev => prev.map(o => ids.includes(o.order_id) ? { ...o, status: newStatus } : o))
 
     let failed = 0
