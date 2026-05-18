@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Users, BarChart2, UserCheck, Settings, LogOut, Store, User, Brain, HeartHandshake, Package } from 'lucide-react'
+import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Users, UserCheck, Settings, LogOut, Store, User, Brain, HeartHandshake, Package } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
@@ -13,7 +13,6 @@ const navItems = [
   { name: 'Menu',         href: '/dashboard/menu',        icon: UtensilsCrossed },
   { name: 'Storefront',   href: '/storefront',            icon: Store },
   { name: 'Customers',    href: '/dashboard/customers',   icon: Users },
-  { name: 'Reports',      href: '/dashboard/reports',     icon: BarChart2 },
   { name: 'Intelligence', href: '/dashboard/intelligence',       icon: Brain         },
   { name: 'CRM',          href: '/dashboard/customer-relations', icon: HeartHandshake },
   { name: 'Inventory',   href: '/dashboard/inventory',          icon: Package        },
