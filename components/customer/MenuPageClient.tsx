@@ -88,6 +88,12 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
   const openCart = () => { setCartOpen(true); setIsReviewsOpen(false); setIsTrackOpen(false) }
   const openReviews = () => { setIsReviewsOpen(true); setCartOpen(false); setIsTrackOpen(false) }
   const openTrack = () => {
+    // If there's a known active order, go straight to the dedicated tracking page
+    if (activeOrder?.orderId) {
+      router.push(`/${slug}/track?order_id=${activeOrder.orderId}`)
+      return
+    }
+    // Otherwise open the sidebar search panel
     setIsTrackOpen(true); setCartOpen(false); setIsReviewsOpen(false)
     if (!trackInput) {
       try {
