@@ -1,50 +1,143 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Brain, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, PlusCircle, CheckCircle2 } from 'lucide-react'
+import { Brain, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, PlusCircle, CheckCircle2, Package } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
-type IntelligenceReport = {
-  report_id: string
-  type: string
-  title: string
-  summary: string
-  metrics: Record<string, any>
-  recommendations: string[]
-  created_at: string
+type MenuCostingReport = {
+  report_id: string; kitchen_id: string; item_count: number
+  owner_report: string; computed_at: string
+}
+type WastageReport = {
+  report_id: string; kitchen_id: string; ingredient_count: number
+  critical_count: number; high_count: number; total_wastage_value_pkr: number
+  owner_report: string; computed_at: string
+}
+type WeeklyDemandReport = {
+  report_id: string; kitchen_id: string; forecast_start_date: string
+  forecast_end_date: string; total_forecast_units: number; peak_day_name: string
+  peak_day_units: number; slow_day_units: number; top_item_name: string
+  top_item_units: number; trend_direction: string; items_rising: number
+  items_falling: number; item_count: number; owner_report: string; computed_at: string
+}
+type PurchasePlanReport = {
+  report_id: string; kitchen_id: string; plan_start_date: string
+  plan_end_date: string; total_ingredients: number; urgent_count: number
+  soon_count: number; orders_to_place_today: number; total_order_value_pkr: number
+  top_urgent_ingredient: string; top_urgent_order_qty: number; top_urgent_unit: string
+  owner_report: string; computed_at: string
+}
+type StockoutReport = {
+  report_id: string; kitchen_id: string; ingredient_count: number
+  critical_count: number; warning_count: number; owner_report: string; computed_at: string
 }
 
-const REPORT_TYPES = [
-  { id: 'margin_analysis', label: 'Margin Analysis', icon: TrendingUp },
-  { id: 'wastage_intelligence', label: 'Wastage Intelligence', icon: AlertTriangle },
-  { id: 'weekly_forecast', label: 'Weekly Demand Forecast', icon: Lightbulb },
-  { id: 'smart_purchase_plan', label: 'Smart Purchase Plan', icon: PlusCircle },
+const TRIGGER_BUTTONS = [
+  { id: 'margin_analysis',      label: 'Margin Analysis',        icon: TrendingUp  },
+  { id: 'wastage_intelligence', label: 'Wastage Intelligence',   icon: AlertTriangle },
+  { id: 'weekly_forecast',      label: 'Weekly Demand Forecast', icon: Lightbulb   },
+  { id: 'smart_purchase_plan',  label: 'Smart Purchase Plan',    icon: PlusCircle  },
 ]
 
-export default function IntelligenceBoard({ initialReports, kitchenId }: { initialReports: IntelligenceReport[], kitchenId: string }) {
-  const [reports, setReports] = useState<IntelligenceReport[]>(initialReports)
-  const [isTriggering, setIsTriggering] = useState<string | null>(null)
+function Timestamp({ value }: { value: string }) {
+  return (
+    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-ink-3)' }}>
+      {new Date(value).toLocaleString()}
+    </span>
+  )
+}
+
+function MetricGrid({ items }: { items: { label: string; value: string | number }[] }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', padding: '16px', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)' }}>
+      {items.map(({ label, value }) => (
+        <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-ink-3)', letterSpacing: '0.05em' }}>{label}</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '22px', color: 'var(--color-ink)' }}>{String(value)}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ReportCard({ badge, computedAt, metrics, ownerReport }: {
+  badge: string
+  computedAt: string
+  metrics: { label: string; value: string | number }[]
+  ownerReport: string
+}) {
+  return (
+    <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span className="badge badge-amber" style={{ textTransform: 'uppercase', fontSize: '11px' }}>{badge}</span>
+        <Timestamp value={computedAt} />
+      </div>
+      <MetricGrid items={metrics} />
+      {ownerReport && (
+        <p style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--color-ink-2)', whiteSpace: 'pre-wrap' }}>
+          {ownerReport}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function Section({ icon: Icon, title, children }: { icon: any; title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Icon size={16} style={{ color: 'var(--color-accent)' }} />
+        <h2 style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: '16px', color: 'var(--color-ink)' }}>{title}</h2>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function Empty({ message }: { message: string }) {
+  return (
+    <div style={{ padding: '20px', border: '1.5px dashed var(--color-border)', borderRadius: 'var(--radius-md)', background: 'var(--color-surface-2)', textAlign: 'center' }}>
+      <p style={{ fontSize: '13px', color: 'var(--color-ink-3)' }}>{message}</p>
+    </div>
+  )
+}
+
+type Props = {
+  kitchenId: string
+  menuCostingReports: MenuCostingReport[]
+  wastageReports: WastageReport[]
+  weeklyDemandReports: WeeklyDemandReport[]
+  purchasePlanReports: PurchasePlanReport[]
+  stockoutReports: StockoutReport[]
+}
+
+export default function IntelligenceBoard({
+  kitchenId,
+  menuCostingReports: initMenuCosting,
+  wastageReports: initWastage,
+  weeklyDemandReports: initWeeklyDemand,
+  purchasePlanReports: initPurchasePlan,
+  stockoutReports: initStockout,
+}: Props) {
+  const [menuCosting, setMenuCosting]     = useState(initMenuCosting)
+  const [wastage, setWastage]             = useState(initWastage)
+  const [weeklyDemand, setWeeklyDemand]   = useState(initWeeklyDemand)
+  const [purchasePlan, setPurchasePlan]   = useState(initPurchasePlan)
+  const [stockout, setStockout]           = useState(initStockout)
+  const [isTriggering, setIsTriggering]   = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage]   = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
     const channel = supabase
-      .channel('intelligence_reports_live')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'intelligence_reports',
-          filter: `kitchen_id=eq.${kitchenId}`,
-        },
-        (payload) => {
-          setReports(prev => [payload.new as IntelligenceReport, ...prev])
-        }
-      )
+      .channel('intelligence_live')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'menu_costing_report',  filter: `kitchen_id=eq.${kitchenId}` }, p => setMenuCosting(prev => [p.new as MenuCostingReport, ...prev]))
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'wastage_report',       filter: `kitchen_id=eq.${kitchenId}` }, p => setWastage(prev => [p.new as WastageReport, ...prev]))
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'weekly_demand_report', filter: `kitchen_id=eq.${kitchenId}` }, p => setWeeklyDemand(prev => [p.new as WeeklyDemandReport, ...prev]))
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'purchase_plan_report', filter: `kitchen_id=eq.${kitchenId}` }, p => setPurchasePlan(prev => [p.new as PurchasePlanReport, ...prev]))
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stockout_report',      filter: `kitchen_id=eq.${kitchenId}` }, p => setStockout(prev => [p.new as StockoutReport, ...prev]))
       .subscribe()
-
     return () => { supabase.removeChannel(channel) }
   }, [kitchenId])
 
@@ -52,21 +145,15 @@ export default function IntelligenceBoard({ initialReports, kitchenId }: { initi
     setIsTriggering(typeId)
     setSuccessMessage(null)
     setErrorMessage(null)
-
     try {
       const res = await fetch('/api/intelligence/trigger', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reportType: typeId })
+        body: JSON.stringify({ reportType: typeId }),
       })
-
       const data = await res.json().catch(() => ({}))
-
-      if (!res.ok) {
-        throw new Error(data.error ?? `Request failed with status ${res.status}`)
-      }
-
-      setSuccessMessage('Workflow triggered successfully. The report will appear here shortly once N8N finishes processing.')
+      if (!res.ok) throw new Error(data.error ?? `Request failed with status ${res.status}`)
+      setSuccessMessage('Workflow triggered. The report will appear here shortly.')
       setTimeout(() => setSuccessMessage(null), 5000)
     } catch (err: any) {
       console.error(err)
@@ -77,13 +164,10 @@ export default function IntelligenceBoard({ initialReports, kitchenId }: { initi
     }
   }
 
-  const formatKey = (key: string) => {
-    return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-  }
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      {/* Header & Action Bar */}
+
+      {/* Header & Trigger Buttons */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '22px', color: 'var(--color-ink)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -94,30 +178,20 @@ export default function IntelligenceBoard({ initialReports, kitchenId }: { initi
             AI-driven insights and automated reports from your N8N workflows.
           </p>
         </div>
-
-        {/* Trigger Buttons */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {REPORT_TYPES.map(rt => (
+          {TRIGGER_BUTTONS.map(rt => (
             <button
               key={rt.id}
               onClick={() => handleTrigger(rt.id)}
               disabled={isTriggering !== null}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                height: '36px',
-                padding: '0 16px',
-                borderRadius: '100px',
-                border: '1px solid var(--color-border-mid)',
-                background: 'var(--color-surface)',
-                color: 'var(--color-ink)',
-                fontFamily: 'var(--font-body)',
-                fontSize: '13px',
-                fontWeight: 500,
-                cursor: isTriggering ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', gap: '8px',
+                height: '36px', padding: '0 16px', borderRadius: '100px',
+                border: '1px solid var(--color-border-mid)', background: 'var(--color-surface)',
+                color: 'var(--color-ink)', fontFamily: 'var(--font-body)', fontSize: '13px',
+                fontWeight: 500, cursor: isTriggering ? 'not-allowed' : 'pointer',
                 opacity: isTriggering && isTriggering !== rt.id ? 0.5 : 1,
-                transition: 'all var(--transition)'
+                transition: 'all var(--transition)',
               }}
               onMouseEnter={e => !isTriggering && (e.currentTarget.style.background = 'var(--color-surface-2)')}
               onMouseLeave={e => !isTriggering && (e.currentTarget.style.background = 'var(--color-surface)')}
@@ -143,77 +217,94 @@ export default function IntelligenceBoard({ initialReports, kitchenId }: { initi
         </div>
       )}
 
-      {/* Reports Feed */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        {reports.length === 0 ? (
-          <div style={{ height: '30vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px', textAlign: 'center', border: '1.5px dashed var(--color-border)', borderRadius: 'var(--radius-lg)', background: 'var(--color-surface-2)' }}>
-            <Brain size={32} style={{ color: 'var(--color-ink-3)', marginBottom: '16px', opacity: 0.5 }} />
-            <p style={{ fontSize: '15px', fontWeight: 500, color: 'var(--color-ink-2)' }}>No intelligence reports yet</p>
-            <p style={{ fontSize: '13px', color: 'var(--color-ink-3)', marginTop: '4px' }}>Manually generate a report above, or wait for your scheduled workflows.</p>
-          </div>
-        ) : (
-          reports.map(report => (
-            <div key={report.report_id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <span className="badge badge-amber" style={{ textTransform: 'uppercase' }}>
-                      {formatKey(report.type)}
-                    </span>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-ink-3)' }}>
-                      {new Date(report.created_at).toLocaleString()}
-                    </span>
-                  </div>
-                  <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '20px', color: 'var(--color-ink)' }}>
-                    {report.title}
-                  </h2>
-                </div>
-              </div>
-
-              {report.summary && (
-                <p style={{ fontSize: '15px', lineHeight: 1.5, color: 'var(--color-ink-2)' }}>
-                  {report.summary}
-                </p>
-              )}
-
-              {/* Metrics Grid */}
-              {report.metrics && Object.keys(report.metrics).length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px', padding: '16px', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)' }}>
-                  {Object.entries(report.metrics).map(([key, value]) => (
-                    <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-ink-3)', letterSpacing: '0.05em' }}>
-                        {formatKey(key)}
-                      </span>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '24px', color: 'var(--color-ink)' }}>
-                        {String(value)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Recommendations */}
-              {report.recommendations && report.recommendations.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
-                  <h3 style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-ink)' }}>
-                    Actionable Recommendations
-                  </h3>
-                  <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {report.recommendations.map((rec, idx) => (
-                      <li key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', fontSize: '14px', lineHeight: 1.5, color: 'var(--color-ink-2)' }}>
-                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'var(--color-accent-bg)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 600, flexShrink: 0, marginTop: '2px' }}>
-                          {idx + 1}
-                        </div>
-                        {rec}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
+      {/* Margin Analysis */}
+      <Section icon={TrendingUp} title="Margin Analysis">
+        {menuCosting.length === 0
+          ? <Empty message="No margin analysis reports yet. Click Generate Margin Analysis above." />
+          : menuCosting.map(r => (
+            <ReportCard key={r.report_id} badge="Margin Analysis" computedAt={r.computed_at}
+              metrics={[{ label: 'Items Analyzed', value: r.item_count }]}
+              ownerReport={r.owner_report}
+            />
           ))
-        )}
-      </div>
+        }
+      </Section>
+
+      {/* Wastage Intelligence */}
+      <Section icon={AlertTriangle} title="Wastage Intelligence">
+        {wastage.length === 0
+          ? <Empty message="No wastage reports yet. Click Generate Wastage Intelligence above." />
+          : wastage.map(r => (
+            <ReportCard key={r.report_id} badge="Wastage" computedAt={r.computed_at}
+              metrics={[
+                { label: 'Ingredients',       value: r.ingredient_count },
+                { label: 'Critical',          value: r.critical_count },
+                { label: 'High',              value: r.high_count },
+                { label: 'Total Value (PKR)', value: r.total_wastage_value_pkr?.toLocaleString() ?? '—' },
+              ]}
+              ownerReport={r.owner_report}
+            />
+          ))
+        }
+      </Section>
+
+      {/* Weekly Demand Forecast */}
+      <Section icon={Lightbulb} title="Weekly Demand Forecast">
+        {weeklyDemand.length === 0
+          ? <Empty message="No weekly demand reports yet. Click Generate Weekly Demand Forecast above." />
+          : weeklyDemand.map(r => (
+            <ReportCard key={r.report_id} badge="Weekly Forecast" computedAt={r.computed_at}
+              metrics={[
+                { label: 'Total Units',  value: r.total_forecast_units },
+                { label: 'Peak Day',     value: r.peak_day_name },
+                { label: 'Peak Units',   value: r.peak_day_units },
+                { label: 'Top Item',     value: r.top_item_name },
+                { label: 'Trend',        value: r.trend_direction },
+                { label: 'Rising Items', value: r.items_rising },
+              ]}
+              ownerReport={r.owner_report}
+            />
+          ))
+        }
+      </Section>
+
+      {/* Smart Purchase Plan */}
+      <Section icon={PlusCircle} title="Smart Purchase Plan">
+        {purchasePlan.length === 0
+          ? <Empty message="No purchase plan reports yet. Click Generate Smart Purchase Plan above." />
+          : purchasePlan.map(r => (
+            <ReportCard key={r.report_id} badge="Purchase Plan" computedAt={r.computed_at}
+              metrics={[
+                { label: 'Total Ingredients', value: r.total_ingredients },
+                { label: 'Urgent',            value: r.urgent_count },
+                { label: 'Soon',              value: r.soon_count },
+                { label: 'Orders Today',      value: r.orders_to_place_today },
+                { label: 'Total Value (PKR)', value: r.total_order_value_pkr?.toLocaleString() ?? '—' },
+                { label: 'Top Item',          value: r.top_urgent_ingredient ?? '—' },
+              ]}
+              ownerReport={r.owner_report}
+            />
+          ))
+        }
+      </Section>
+
+      {/* Stockout Forecast (auto-generated) */}
+      <Section icon={Package} title="Stockout Forecast">
+        {stockout.length === 0
+          ? <Empty message="No stockout reports yet. Automatically generated when stock levels change." />
+          : stockout.map(r => (
+            <ReportCard key={r.report_id} badge="Stockout" computedAt={r.computed_at}
+              metrics={[
+                { label: 'Ingredients', value: r.ingredient_count },
+                { label: 'Critical',    value: r.critical_count },
+                { label: 'Warning',     value: r.warning_count },
+              ]}
+              ownerReport={r.owner_report}
+            />
+          ))
+        }
+      </Section>
+
     </div>
   )
 }
