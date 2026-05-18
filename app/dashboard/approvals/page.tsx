@@ -36,7 +36,7 @@ export default async function ApprovalsPage() {
           Actions pending your review before automation fires. Approve to execute, reject to dismiss.
         </p>
       </div>
-      <ApprovalsBoard initialApprovals={initialApprovals || []} />
+      <ApprovalsBoard initialApprovals={initialApprovals || []} kitchenId={profile.kitchen_id} />
     </div>
   )
 }
