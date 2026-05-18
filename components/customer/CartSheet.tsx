@@ -46,9 +46,13 @@ export function CartSheet({
         .eq('phone', normalizedPhone)
         .maybeSingle()
 
+      let isNewCustomer = false
+      let totalOrders = 0
+
       // Step 3: Insert customer if new
       let customerId = existingCustomer?.customer_id
       if (!customerId) {
+        isNewCustomer = true
         const { data: newCustomer, error: customerError } = await supabase
           .from('customers')
           .insert({
@@ -64,6 +68,31 @@ export function CartSheet({
 
         if (customerError) throw customerError
         customerId = newCustomer.customer_id
+        
+        // Trigger WF8 Referral for new customers
+        const wf8Url = process.env.NEXT_PUBLIC_N8N_WF8_REFERRAL || process.env.N8N_WF8_REFERRAL
+        if (wf8Url) {
+          fetch(wf8Url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ body: { record: { kitchen_id: kitchenId, customer_id: customerId } } })
+          }).catch(console.error)
+        }
+      } else {
+        const { data: cData } = await supabase.from('customers').select('total_orders').eq('customer_id', customerId).single()
+        totalOrders = cData?.total_orders || 0
+        
+        // Trigger WF2 Loyalty for returning customers (milestone)
+        if (totalOrders % 5 === 0 && totalOrders > 0) {
+          const wf2Url = process.env.NEXT_PUBLIC_N8N_WF2_LOYALTY || process.env.N8N_WF2_LOYALTY
+          if (wf2Url) {
+            fetch(wf2Url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ body: { record: { kitchen_id: kitchenId, customer_id: customerId } } })
+            }).catch(console.error)
+          }
+        }
       }
 
       // Step 4: Insert the order

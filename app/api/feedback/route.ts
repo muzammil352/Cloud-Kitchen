@@ -27,6 +27,25 @@ export async function POST(req: Request) {
       body: JSON.stringify(parsed.data),
     })
 
+    if (parsed.data.rating <= 2) {
+      const complaintUrl = process.env.N8N_WF6_COMPLAINT
+      if (complaintUrl) {
+        await fetch(complaintUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            body: { 
+              record: { 
+                kitchen_id: parsed.data.kitchen_id, 
+                customer_id: 'unknown_customer_id', // Feedback might not have customer_id
+                metadata: { rating: parsed.data.rating, comment: parsed.data.comment } 
+              } 
+            } 
+          })
+        }).catch(err => console.error('WF6_COMPLAINT trigger failed:', err))
+      }
+    }
+
     return NextResponse.json({ success: true })
   } catch (err: any) {
     console.error('feedback route error:', err)

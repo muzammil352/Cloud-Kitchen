@@ -153,6 +153,26 @@ export function OrderGrid({ initialOrders, kitchenId }: { initialOrders: Order[]
       
     if (error) {
       console.error("Critical: Failed to explicitly march status natively", error)
+    } else if (nextState === 'delivered') {
+      const itemNames = order.order_items?.map((i: any) => i.menu_items?.name || 'Item') || []
+      const kitchen_id = order.kitchen_id
+      const customer_id = order.customer_id
+      
+      const wf5Url = process.env.NEXT_PUBLIC_N8N_WF5_CLV || process.env.N8N_WF5_CLV
+      const wf7Url = process.env.NEXT_PUBLIC_N8N_WF7_UPSELL || process.env.N8N_WF7_UPSELL
+      
+      await Promise.all([
+        wf5Url ? fetch(wf5Url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ body: { record: { kitchen_id, customer_id } } })
+        }).catch(console.error) : Promise.resolve(),
+        wf7Url ? fetch(wf7Url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ body: { record: { kitchen_id, customer_id, items: itemNames } } })
+        }).catch(console.error) : Promise.resolve()
+      ])
     }
   }
 

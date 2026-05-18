@@ -31,33 +31,40 @@ export async function POST(request: Request) {
     const n8nWebhookUrl = process.env.N8N_MANUAL_TRIGGER_URL
     if (!n8nWebhookUrl) {
       console.error('N8N_MANUAL_TRIGGER_URL is not set in environment variables.')
-      return NextResponse.json({ error: 'Configuration error' }, { status: 500 })
+      return NextResponse.json({ error: 'N8N_MANUAL_TRIGGER_URL is not configured in environment variables.' }, { status: 500 })
     }
 
     // Forward the trigger to N8N
-    const response = await fetch(n8nWebhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // Optional security header if they want to verify requests came from Vercel
-        'x-kitchenos-trigger': 'true'
-      },
-      body: JSON.stringify({
-        action: 'generate_intelligence_report',
-        reportType: reportType,
-        kitchen_id: profile.kitchen_id,
-        user_id: user.id,
-        timestamp: new Date().toISOString()
-      }),
-    })
+    let response: Response
+    try {
+      response = await fetch(n8nWebhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-kitchenos-trigger': 'true'
+        },
+        body: JSON.stringify({
+          action: 'generate_intelligence_report',
+          reportType: reportType,
+          kitchen_id: profile.kitchen_id,
+          user_id: user.id,
+          timestamp: new Date().toISOString()
+        }),
+      })
+    } catch (fetchError: any) {
+      console.error('Failed to reach N8N webhook:', fetchError)
+      return NextResponse.json({ error: `Could not reach N8N webhook: ${fetchError.message}` }, { status: 502 })
+    }
 
     if (!response.ok) {
-      throw new Error(`N8N responded with status: ${response.status}`)
+      const body = await response.text().catch(() => '')
+      console.error(`N8N responded with status ${response.status}:`, body)
+      return NextResponse.json({ error: `N8N returned ${response.status}${body ? ': ' + body : ''}` }, { status: 502 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
     console.error('Intelligence Trigger API Error:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ error: error.message ?? 'Internal Server Error' }, { status: 500 })
   }
 }

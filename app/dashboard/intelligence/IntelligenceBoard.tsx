@@ -24,27 +24,32 @@ export default function IntelligenceBoard({ initialReports }: { initialReports: 
   const [reports, setReports] = useState<IntelligenceReport[]>(initialReports)
   const [isTriggering, setIsTriggering] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const handleTrigger = async (typeId: string) => {
     setIsTriggering(typeId)
     setSuccessMessage(null)
-    
+    setErrorMessage(null)
+
     try {
       const res = await fetch('/api/intelligence/trigger', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reportType: typeId })
       })
-      
+
+      const data = await res.json().catch(() => ({}))
+
       if (!res.ok) {
-        throw new Error('Failed to trigger workflow')
+        throw new Error(data.error ?? `Request failed with status ${res.status}`)
       }
-      
+
       setSuccessMessage('Workflow triggered successfully. The report will appear here shortly once N8N finishes processing.')
       setTimeout(() => setSuccessMessage(null), 5000)
-    } catch (err) {
+    } catch (err: any) {
       console.error(err)
-      alert('Error triggering workflow. Check console.')
+      setErrorMessage(err.message ?? 'Unknown error. Check the browser console.')
+      setTimeout(() => setErrorMessage(null), 8000)
     } finally {
       setIsTriggering(null)
     }
@@ -106,6 +111,13 @@ export default function IntelligenceBoard({ initialReports }: { initialReports: 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', background: 'var(--color-surface)', borderLeft: '4px solid var(--color-green)', borderRadius: 'var(--radius-md)' }}>
           <CheckCircle2 size={18} style={{ color: 'var(--color-green)' }} />
           <span style={{ fontSize: '14px', color: 'var(--color-ink)' }}>{successMessage}</span>
+        </div>
+      )}
+
+      {errorMessage && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', background: 'var(--color-surface)', borderLeft: '4px solid #ef4444', borderRadius: 'var(--radius-md)' }}>
+          <AlertTriangle size={18} style={{ color: '#ef4444' }} />
+          <span style={{ fontSize: '14px', color: 'var(--color-ink)' }}><strong>Error:</strong> {errorMessage}</span>
         </div>
       )}
 
