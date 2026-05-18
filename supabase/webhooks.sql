@@ -17,7 +17,7 @@ CREATE EXTENSION IF NOT EXISTS pg_net;
 CREATE OR REPLACE FUNCTION _webhook_menu_costing()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
-  PERFORM pg_net.http_post(
+  PERFORM net.http_post(
     url     := 'https://n8n.devplusops.com/webhook/4d8f06a0-08c1-4580-b9be-165bce018085',
     body    := jsonb_build_object(
       'event',      TG_OP,
@@ -45,7 +45,7 @@ CREATE TRIGGER trg_menu_costing_webhook
 CREATE OR REPLACE FUNCTION _webhook_inventory_value()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
-  PERFORM pg_net.http_post(
+  PERFORM net.http_post(
     url     := 'https://n8n.devplusops.com/webhook/89dbae28-f10e-442b-93c2-7e22f64cab54',
     body    := jsonb_build_object(
       'event',      TG_OP,
@@ -75,7 +75,7 @@ RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   -- Only fire when stock actually decreases
   IF NEW.current_stock < OLD.current_stock THEN
-    PERFORM pg_net.http_post(
+    PERFORM net.http_post(
       url     := 'https://n8n.devplusops.com/webhook/453bcd5f-368f-44d2-a376-d6010d7d6084',
       body    := jsonb_build_object(
         'event',               'STOCK_DECREASE',
@@ -111,7 +111,7 @@ RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   -- Only fire for wastage (negative change_amount)
   IF NEW.change_amount < 0 THEN
-    PERFORM pg_net.http_post(
+    PERFORM net.http_post(
       url     := 'https://n8n.devplusops.com/webhook/f5033b62-26b6-4076-a17d-6d76bad21611',
       body    := jsonb_build_object(
         'event',            'WASTAGE_LOGGED',
@@ -146,7 +146,7 @@ CREATE OR REPLACE FUNCTION _webhook_smart_purchase_plan()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   IF NEW.type = 'low_stock' THEN
-    PERFORM pg_net.http_post(
+    PERFORM net.http_post(
       url     := 'https://n8n.devplusops.com/webhook/39f2b6aa-e71b-441f-84cf-1c56cc7ca061',
       body    := jsonb_build_object(
         'event',           'LOW_STOCK_ALERT',
@@ -177,7 +177,7 @@ CREATE OR REPLACE FUNCTION _webhook_order_status_change()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   IF NEW.status IS DISTINCT FROM OLD.status THEN
-    PERFORM pg_net.http_post(
+    PERFORM net.http_post(
       url     := 'https://n8n.devplusops.com/webhook/order-status-change',
       body    := jsonb_build_object(
         'event',        'ORDER_STATUS_CHANGED',
