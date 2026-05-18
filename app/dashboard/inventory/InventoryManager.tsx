@@ -209,23 +209,14 @@ export default function InventoryManager({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '22px', color: 'var(--color-ink)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Package size={22} style={{ color: 'var(--color-accent)' }} />
-            Inventory
-          </h1>
-          <p style={{ fontSize: '14px', color: 'var(--color-ink-3)', marginTop: '4px' }}>
-            Track stock levels, set reorder thresholds, and manage your ingredient list.
-          </p>
-        </div>
-        <button
-          onClick={() => { setIsAdding(true); setAddDraft(BLANK_DRAFT) }}
-          disabled={isAdding}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '36px', padding: '0 16px', borderRadius: '100px', border: 'none', background: 'var(--color-accent)', color: '#fff', fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 600, cursor: isAdding ? 'not-allowed' : 'pointer', opacity: isAdding ? 0.6 : 1 }}
-        >
-          <Plus size={15} /> Add Item
-        </button>
+      <div>
+        <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '22px', color: 'var(--color-ink)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Package size={22} style={{ color: 'var(--color-accent)' }} />
+          Inventory
+        </h1>
+        <p style={{ fontSize: '14px', color: 'var(--color-ink-3)', marginTop: '4px' }}>
+          Track stock levels, set reorder thresholds, and manage your ingredient list.
+        </p>
       </div>
 
       {/* Summary cards */}
@@ -257,8 +248,8 @@ export default function InventoryManager({
         </div>
       )}
 
-      {/* Filter tabs */}
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      {/* Filter tabs + Add Item */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
         {([
           { id: 'all',      label: 'All',          count: items.length },
           { id: 'low',      label: 'Low Stock',    count: lowCount + criticalCount, icon: <TrendingDown size={12} /> },
@@ -273,6 +264,13 @@ export default function InventoryManager({
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', padding: '1px 6px', borderRadius: '100px', background: filter === f.id ? 'rgba(0,0,0,0.08)' : 'var(--color-surface-2)', fontWeight: 600 }}>{f.count}</span>
           </button>
         ))}
+        <button
+          onClick={() => { setIsAdding(true); setAddDraft(BLANK_DRAFT) }}
+          disabled={isAdding}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '32px', padding: '0 14px', borderRadius: '100px', border: 'none', background: 'var(--color-accent)', color: '#fff', fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 600, cursor: isAdding ? 'not-allowed' : 'pointer', opacity: isAdding ? 0.6 : 1 }}
+        >
+          <Plus size={15} /> Add Item
+        </button>
       </div>
 
       {error && (
@@ -282,9 +280,9 @@ export default function InventoryManager({
       )}
 
       {/* Main Ingredients Table */}
-      <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+      <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: '#fff' }}>
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff' }}>
             <thead>
               <tr>
                 <TH>Status</TH>
@@ -426,9 +424,9 @@ export default function InventoryManager({
             </span>
           </div>
 
-          <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+          <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: '#fff' }}>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff' }}>
                 <thead>
                   <tr>
                     <TH>Name</TH>
