@@ -167,3 +167,37 @@ CREATE TRIGGER trg_smart_purchase_plan_webhook
   AFTER INSERT ON notifications_log
   FOR EACH ROW EXECUTE FUNCTION _webhook_smart_purchase_plan();
 
+
+-- ---------------------------------------------------------------
+-- 5. ORDER STATUS CHANGE (email/WhatsApp notification to customer)
+--    Fires on: orders UPDATE when status changes
+--    Lets N8N send email/WhatsApp to customer at each step.
+-- ---------------------------------------------------------------
+CREATE OR REPLACE FUNCTION _webhook_order_status_change()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  IF NEW.status IS DISTINCT FROM OLD.status THEN
+    PERFORM pg_net.http_post(
+      url     := 'https://n8n.devplusops.com/webhook/order-status-change',
+      body    := jsonb_build_object(
+        'event',        'ORDER_STATUS_CHANGED',
+        'order_id',     NEW.order_id,
+        'kitchen_id',   NEW.kitchen_id,
+        'customer_id',  NEW.customer_id,
+        'old_status',   OLD.status,
+        'new_status',   NEW.status,
+        'total_amount', NEW.total_amount,
+        'updated_at',   NEW.updated_at
+      ),
+      headers := '{"Content-Type": "application/json"}'::jsonb
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_order_status_change_webhook ON orders;
+CREATE TRIGGER trg_order_status_change_webhook
+  AFTER UPDATE ON orders
+  FOR EACH ROW EXECUTE FUNCTION _webhook_order_status_change();
+
