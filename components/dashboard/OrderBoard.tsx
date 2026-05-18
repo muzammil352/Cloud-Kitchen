@@ -106,7 +106,7 @@ export function OrderBoard({ initialOrders, kitchenId }: { initialOrders: Order[
     if (error) {
       console.error('Order update failed:', order.order_id, error)
       setOrders(prev => prev.map(o => o.order_id === order.order_id ? { ...o, status: oldStatus } : o))
-      alert('Failed to update order status. Make sure the RLS UPDATE policy is added in Supabase.')
+      alert(`Failed to update order status.\nCode: ${error.code}\nMessage: ${error.message}`)
     } else {
       pushN8NStatus(order, oldStatus, newStatus)
     }
