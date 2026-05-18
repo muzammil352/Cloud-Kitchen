@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Brain, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, PlusCircle, CheckCircle2, Package } from 'lucide-react'
+import { Brain, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, PlusCircle, CheckCircle2, Package, FileText } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 type MenuCostingReport = {
@@ -60,22 +60,55 @@ function MetricGrid({ items }: { items: { label: string; value: string | number 
   )
 }
 
+function parseOwnerReport(text: string): { narrative: string; reportUrl: string | null } {
+  if (!text) return { narrative: '', reportUrl: null }
+  const urlMatch = text.match(/https?:\/\/\S+\.pdf/i)
+  if (!urlMatch) return { narrative: text, reportUrl: null }
+  return {
+    narrative: text.replace(urlMatch[0], '').trim(),
+    reportUrl: urlMatch[0],
+  }
+}
+
 function ReportCard({ badge, computedAt, metrics, ownerReport }: {
   badge: string
   computedAt: string
   metrics: { label: string; value: string | number }[]
   ownerReport: string
 }) {
+  const { narrative, reportUrl } = parseOwnerReport(ownerReport)
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span className="badge badge-amber" style={{ textTransform: 'uppercase', fontSize: '11px' }}>{badge}</span>
-        <Timestamp value={computedAt} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span className="badge badge-amber" style={{ textTransform: 'uppercase', fontSize: '11px' }}>{badge}</span>
+          <Timestamp value={computedAt} />
+        </div>
+        {reportUrl && (
+          <a
+            href={reportUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              height: '30px', padding: '0 12px', borderRadius: '100px',
+              border: '1px solid var(--color-border-mid)', background: 'var(--color-surface)',
+              color: 'var(--color-ink)', fontFamily: 'var(--font-body)', fontSize: '12px',
+              fontWeight: 500, textDecoration: 'none', flexShrink: 0,
+              transition: 'all var(--transition)',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-2)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-surface)')}
+          >
+            <FileText size={12} />
+            Report
+          </a>
+        )}
       </div>
       <MetricGrid items={metrics} />
-      {ownerReport && (
+      {narrative && (
         <p style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--color-ink-2)', whiteSpace: 'pre-wrap' }}>
-          {ownerReport}
+          {narrative}
         </p>
       )}
     </div>
@@ -132,11 +165,11 @@ export default function IntelligenceBoard({
     const supabase = createClient()
     const channel = supabase
       .channel('intelligence_live')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'menu_costing_report',  filter: `kitchen_id=eq.${kitchenId}` }, p => setMenuCosting(prev => [p.new as MenuCostingReport, ...prev]))
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'wastage_report',       filter: `kitchen_id=eq.${kitchenId}` }, p => setWastage(prev => [p.new as WastageReport, ...prev]))
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'weekly_demand_report', filter: `kitchen_id=eq.${kitchenId}` }, p => setWeeklyDemand(prev => [p.new as WeeklyDemandReport, ...prev]))
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'purchase_plan_report', filter: `kitchen_id=eq.${kitchenId}` }, p => setPurchasePlan(prev => [p.new as PurchasePlanReport, ...prev]))
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stockout_report',      filter: `kitchen_id=eq.${kitchenId}` }, p => setStockout(prev => [p.new as StockoutReport, ...prev]))
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'menu_costing_report',  filter: `kitchen_id=eq.${kitchenId}` }, p => setMenuCosting(prev => prev.some(r => r.report_id === p.new.report_id) ? prev : [p.new as MenuCostingReport, ...prev]))
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'wastage_report',       filter: `kitchen_id=eq.${kitchenId}` }, p => setWastage(prev => prev.some(r => r.report_id === p.new.report_id) ? prev : [p.new as WastageReport, ...prev]))
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'weekly_demand_report', filter: `kitchen_id=eq.${kitchenId}` }, p => setWeeklyDemand(prev => prev.some(r => r.report_id === p.new.report_id) ? prev : [p.new as WeeklyDemandReport, ...prev]))
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'purchase_plan_report', filter: `kitchen_id=eq.${kitchenId}` }, p => setPurchasePlan(prev => prev.some(r => r.report_id === p.new.report_id) ? prev : [p.new as PurchasePlanReport, ...prev]))
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stockout_report',      filter: `kitchen_id=eq.${kitchenId}` }, p => setStockout(prev => prev.some(r => r.report_id === p.new.report_id) ? prev : [p.new as StockoutReport, ...prev]))
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [kitchenId])
