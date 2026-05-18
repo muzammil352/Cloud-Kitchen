@@ -28,10 +28,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing reportType' }, { status: 400 })
     }
 
-    const n8nWebhookUrl = process.env.N8N_MANUAL_TRIGGER_URL
+    const urlMap: Record<string, string | undefined> = {
+      margin_analysis:       process.env.N8N_TRIGGER_MARGIN_ANALYSIS,
+      wastage_intelligence:  process.env.N8N_TRIGGER_WASTAGE_INTELLIGENCE,
+      weekly_forecast:       process.env.N8N_WEEKLY_FORECAST_URL,
+      smart_purchase_plan:   process.env.N8N_TRIGGER_SMART_PURCHASE_PLAN,
+    }
+
+    const n8nWebhookUrl = urlMap[reportType]
     if (!n8nWebhookUrl) {
-      console.error('N8N_MANUAL_TRIGGER_URL is not set in environment variables.')
-      return NextResponse.json({ error: 'N8N_MANUAL_TRIGGER_URL is not configured in environment variables.' }, { status: 500 })
+      console.error(`No N8N webhook URL configured for reportType: ${reportType}`)
+      return NextResponse.json({ error: `No webhook URL configured for report type: ${reportType}` }, { status: 500 })
     }
 
     // Forward the trigger to N8N
@@ -45,7 +52,7 @@ export async function POST(request: Request) {
         },
         body: JSON.stringify({
           action: 'generate_intelligence_report',
-          reportType: reportType,
+          reportType,
           kitchen_id: profile.kitchen_id,
           user_id: user.id,
           timestamp: new Date().toISOString()
@@ -57,9 +64,9 @@ export async function POST(request: Request) {
     }
 
     if (!response.ok) {
-      const body = await response.text().catch(() => '')
-      console.error(`N8N responded with status ${response.status}:`, body)
-      return NextResponse.json({ error: `N8N returned ${response.status}${body ? ': ' + body : ''}` }, { status: 502 })
+      const responseBody = await response.text().catch(() => '')
+      console.error(`N8N responded with status ${response.status}:`, responseBody)
+      return NextResponse.json({ error: `N8N returned ${response.status}${responseBody ? ': ' + responseBody : ''}` }, { status: 502 })
     }
 
     return NextResponse.json({ success: true })
