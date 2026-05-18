@@ -33,10 +33,11 @@ type StockoutReport = {
 }
 
 const TRIGGER_BUTTONS = [
-  { id: 'margin_analysis',      label: 'Margin Analysis',        icon: TrendingUp  },
+  { id: 'margin_analysis',      label: 'Margin Analysis',        icon: TrendingUp    },
   { id: 'wastage_intelligence', label: 'Wastage Intelligence',   icon: AlertTriangle },
-  { id: 'weekly_forecast',      label: 'Weekly Demand Forecast', icon: Lightbulb   },
-  { id: 'smart_purchase_plan',  label: 'Smart Purchase Plan',    icon: PlusCircle  },
+  { id: 'weekly_forecast',      label: 'Weekly Demand Forecast', icon: Lightbulb     },
+  { id: 'smart_purchase_plan',  label: 'Smart Purchase Plan',    icon: PlusCircle    },
+  { id: 'stockout_forecast',    label: 'Stockout Forecast',      icon: Package       },
 ]
 
 function Timestamp({ value }: { value: string }) {

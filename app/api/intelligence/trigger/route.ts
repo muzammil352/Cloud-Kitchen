@@ -33,6 +33,7 @@ export async function POST(request: Request) {
       wastage_intelligence:  process.env.N8N_TRIGGER_WASTAGE_INTELLIGENCE,
       weekly_forecast:       process.env.N8N_WEEKLY_FORECAST_URL,
       smart_purchase_plan:   process.env.N8N_TRIGGER_SMART_PURCHASE_PLAN,
+      stockout_forecast:     process.env.N8N_TRIGGER_STOCKOUT_FORECAST,
     }
 
     const n8nWebhookUrl = urlMap[reportType]
