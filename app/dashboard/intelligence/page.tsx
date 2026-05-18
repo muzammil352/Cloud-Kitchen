@@ -4,6 +4,16 @@ import IntelligenceBoard from './IntelligenceBoard'
 
 export const revalidate = 0
 
+function dedupe<T extends { computed_at: string }>(rows: T[]): T[] {
+  const seen = new Set<string>()
+  return rows.filter(r => {
+    const key = r.computed_at
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
 export default async function IntelligencePage() {
   const supabase = createClient()
 
@@ -38,11 +48,11 @@ export default async function IntelligencePage() {
     <div style={{ opacity: 0, animation: 'fadeIn 300ms forwards', paddingBottom: '48px' }}>
       <IntelligenceBoard
         kitchenId={kitchenId}
-        menuCostingReports={menuCostingReports || []}
-        wastageReports={wastageReports || []}
-        weeklyDemandReports={weeklyDemandReports || []}
-        purchasePlanReports={purchasePlanReports || []}
-        stockoutReports={stockoutReports || []}
+        menuCostingReports={dedupe(menuCostingReports || [])}
+        wastageReports={dedupe(wastageReports || [])}
+        weeklyDemandReports={dedupe(weeklyDemandReports || [])}
+        purchasePlanReports={dedupe(purchasePlanReports || [])}
+        stockoutReports={dedupe(stockoutReports || [])}
       />
     </div>
   )
