@@ -30,7 +30,7 @@ export default async function IntelligencePage() {
 
   return (
     <div style={{ opacity: 0, animation: 'fadeIn 300ms forwards', paddingBottom: '48px' }}>
-      <IntelligenceBoard initialReports={reports || []} />
+      <IntelligenceBoard initialReports={reports || []} kitchenId={kitchenId} />
     </div>
   )
 }

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Brain, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, PlusCircle, CheckCircle2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 type IntelligenceReport = {
   report_id: string
@@ -20,11 +21,32 @@ const REPORT_TYPES = [
   { id: 'smart_purchase_plan', label: 'Smart Purchase Plan', icon: PlusCircle },
 ]
 
-export default function IntelligenceBoard({ initialReports }: { initialReports: IntelligenceReport[] }) {
+export default function IntelligenceBoard({ initialReports, kitchenId }: { initialReports: IntelligenceReport[], kitchenId: string }) {
   const [reports, setReports] = useState<IntelligenceReport[]>(initialReports)
   const [isTriggering, setIsTriggering] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    const channel = supabase
+      .channel('intelligence_reports_live')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'intelligence_reports',
+          filter: `kitchen_id=eq.${kitchenId}`,
+        },
+        (payload) => {
+          setReports(prev => [payload.new as IntelligenceReport, ...prev])
+        }
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [kitchenId])
 
   const handleTrigger = async (typeId: string) => {
     setIsTriggering(typeId)
