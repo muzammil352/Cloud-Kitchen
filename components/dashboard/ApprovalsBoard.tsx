@@ -89,7 +89,7 @@ export function ApprovalsBoard({ initialApprovals, kitchenId }: { initialApprova
 
   const handleBulk = async (action: 'approve' | 'reject') => {
     if (selected.size === 0) return
-    const ids = [...selected]
+    const ids = Array.from(selected)
     ids.forEach(id => setProcessing(prev => new Set(prev).add(id)))
     const tokens = approvals.filter(a => ids.includes(a.notification_id)).map(a => a.approval_token)
     try {
