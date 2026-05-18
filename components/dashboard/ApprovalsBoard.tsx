@@ -43,6 +43,7 @@ export function ApprovalsBoard({ initialApprovals, kitchenId }: { initialApprova
   const [selected, setSelected]       = useState<Set<string>>(new Set())
   const [processing, setProcessing]   = useState<Set<string>>(new Set())
   const [errorMap, setErrorMap]       = useState<Record<string, string>>({})
+  const [activeFilter, setActiveFilter] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -127,11 +128,40 @@ export function ApprovalsBoard({ initialApprovals, kitchenId }: { initialApprova
     )
   }
 
-  const visibleSections = SECTIONS.filter(s => approvals.some(a => a.type === s.type))
-  const otherApprovals  = approvals.filter(a => !SECTIONS.some(s => s.type === a.type))
+  const filteredApprovals = activeFilter ? approvals.filter(a => a.type === activeFilter) : approvals
+  const visibleSections   = SECTIONS.filter(s => filteredApprovals.some(a => a.type === s.type))
+  const otherApprovals    = filteredApprovals.filter(a => !SECTIONS.some(s => s.type === a.type))
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+      {/* Filter buttons */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        {[{ type: null, label: 'All', count: approvals.length }, ...SECTIONS.map(s => ({ type: s.type, label: s.label, count: approvals.filter(a => a.type === s.type).length }))].filter(f => f.type === null || f.count > 0).map(f => {
+          const isActive = activeFilter === f.type
+          const section  = SECTIONS.find(s => s.type === f.type)
+          return (
+            <button
+              key={f.type ?? 'all'}
+              onClick={() => { setActiveFilter(f.type); setSelected(new Set()) }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                height: '32px', padding: '0 14px', borderRadius: '100px',
+                border: `1px solid ${isActive ? (section?.border ?? 'var(--color-accent)') : 'var(--color-border-mid)'}`,
+                background: isActive ? (section?.bg ?? 'var(--color-accent-bg)') : 'var(--color-surface)',
+                color: isActive ? (section?.color ?? 'var(--color-accent)') : 'var(--color-ink-2)',
+                fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: isActive ? 600 : 400,
+                cursor: 'pointer', transition: 'all var(--transition)',
+              }}
+            >
+              {f.label}
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600, padding: '1px 6px', borderRadius: '100px', background: isActive ? 'rgba(0,0,0,0.08)' : 'var(--color-surface-2)', color: 'inherit' }}>
+                {f.count}
+              </span>
+            </button>
+          )
+        })}
+      </div>
 
       {/* Bulk action toolbar */}
       {selected.size > 0 && (
