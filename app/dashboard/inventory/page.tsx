@@ -18,18 +18,38 @@ export default async function InventoryPage() {
 
   if (!profile || profile.role !== 'owner') redirect('/dashboard')
 
-  const { data: ingredients } = await supabase
-    .from('ingredients')
-    .select('*')
-    .eq('kitchen_id', profile.kitchen_id)
-    .order('category', { ascending: true, nullsFirst: false })
-    .order('name', { ascending: true })
+  const [
+    { data: ingredients },
+    { data: inventoryValues },
+    { data: totalRows },
+  ] = await Promise.all([
+    supabase
+      .from('ingredients')
+      .select('*')
+      .eq('kitchen_id', profile.kitchen_id)
+      .order('category', { ascending: true, nullsFirst: false })
+      .order('name', { ascending: true }),
+    supabase
+      .from('inventory_value')
+      .select('*')
+      .eq('kitchen_id', profile.kitchen_id)
+      .order('computed_at', { ascending: false })
+      .limit(200),
+    supabase
+      .from('inventory_totals')
+      .select('*')
+      .eq('kitchen_id', profile.kitchen_id)
+      .order('computed_at', { ascending: false })
+      .limit(1),
+  ])
 
   return (
     <div style={{ opacity: 0, animation: 'fadeIn 300ms forwards', paddingBottom: '48px' }}>
       <InventoryManager
         initialIngredients={ingredients || []}
         kitchenId={profile.kitchen_id}
+        inventoryValues={inventoryValues || []}
+        inventoryTotals={totalRows?.[0] ?? null}
       />
     </div>
   )

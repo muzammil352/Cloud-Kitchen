@@ -112,7 +112,36 @@ export type Ingredient = {
   reorder_level: number | null
   ideal_stock: number | null
   unit: string
+  cost_per_unit: number | null
+  supplier_name: string | null
+  lead_time_days: number | null
+  minimum_cover_days: number | null
   created_at: string
+}
+
+export type InventoryValue = {
+  ingredient_id: string
+  kitchen_id: string
+  name: string | null
+  unit: string | null
+  current_stock: number | null
+  cost_per_unit: number | null
+  value_pkr: number | null
+  reorder_level: number | null
+  below_reorder: boolean | null
+  lead_time_days: number | null
+  minimum_cover_days: number | null
+  supplier_name: string | null
+  computed_at: string
+}
+
+export type InventoryTotals = {
+  kitchen_id: string
+  total_value_pkr: number | null
+  ingredient_count: number | null
+  ingredients_below_reorder: number | null
+  top_3_cash_locked: string | null
+  computed_at: string
 }
 
 export type StockLog = {
