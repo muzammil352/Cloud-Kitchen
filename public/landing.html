@@ -324,6 +324,48 @@ a,button,.nbtn,.pbtn,[role=button]{cursor:url("data:image/svg+xml;base64,PHN2ZyB
 .circ-vis svg{animation:crotate 8s linear infinite;transform-origin:center center}
 @keyframes crotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
+/* ── TEAM ── */
+#team{background:var(--dark);padding:120px 40px}
+.team-in{max-width:1200px;margin:0 auto}
+#team .sec-lbl{color:rgba(212,83,26,.6)}
+#team .t1{color:#fff}
+.team-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:56px}
+.tcard{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;overflow:hidden;cursor:pointer;
+  transition:border-color .35s,box-shadow .35s,transform .35s;
+  outline:none}
+.tcard:hover,.tcard:focus,.tcard.open{
+  border-color:rgba(212,83,26,.35);
+  box-shadow:0 20px 60px rgba(0,0,0,.45);
+  transform:translateY(-4px)}
+.tphoto{height:260px;overflow:hidden;position:relative;flex-shrink:0}
+.tphoto img{width:100%;height:100%;object-fit:cover;object-position:center top;
+  filter:grayscale(100%) brightness(.8) contrast(1.05);
+  transition:filter .45s ease,transform .45s ease}
+.tcard:hover .tphoto img,.tcard:focus .tphoto img,.tcard.open .tphoto img{
+  filter:grayscale(0%) brightness(1) contrast(1);
+  transform:scale(1.05)}
+.tinfo{padding:16px 18px 18px}
+.tname{font-family:'Fraunces',serif;font-size:16px;font-weight:700;
+  line-height:1.2;color:#fff;margin-bottom:4px}
+.trole{font-family:'JetBrains Mono',monospace;font-size:8.5px;
+  color:rgba(212,83,26,.75);text-transform:uppercase;letter-spacing:.07em;
+  margin-bottom:0}
+.tbio{font-size:12px;line-height:1.7;color:rgba(255,255,255,.4);
+  max-height:0;overflow:hidden;opacity:0;
+  transition:max-height .5s cubic-bezier(.16,1,.3,1),opacity .35s .05s}
+.tcard:hover .tbio,.tcard:focus .tbio,.tcard.open .tbio{
+  max-height:260px;opacity:1;margin-top:12px}
+.tli{display:inline-flex;align-items:center;gap:5px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  color:rgba(212,83,26,.6);text-decoration:none;
+  opacity:0;transform:translateY(5px);
+  transition:opacity .25s .12s,transform .25s .12s,color .2s;
+  margin-top:10px}
+.tcard:hover .tli,.tcard:focus .tli,.tcard.open .tli{opacity:1;transform:translateY(0)}
+.tli:hover{color:#fff}
+.tli svg{flex-shrink:0}
+
 /* ── PRICING ── */
 #pricing{padding:120px 40px}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:60px}
@@ -386,6 +428,8 @@ a,button,.nbtn,.pbtn,[role=button]{cursor:url("data:image/svg+xml;base64,PHN2ZyB
   .ftop{grid-template-columns:1fr 1fr;gap:36px}
   .ftop>:first-child{grid-column:1/-1}
   .mock-kanban{grid-template-columns:repeat(2,1fr)}
+  .team-grid{grid-template-columns:repeat(2,1fr)}
+  .team-grid .tcard:last-child{grid-column:1/-1;max-width:340px;margin:0 auto;width:100%}
 }
 section{scroll-margin-top:80px}
 </style>
@@ -405,6 +449,7 @@ section{scroll-margin-top:80px}
   <ul class="nav-links" role="list">
     <li><a href="#features">Features</a></li>
     <li><a href="#how">How it works</a></li>
+    <li><a href="#team">Team</a></li>
     <li><a href="#pricing">Pricing</a></li>
     <li><a href="#footer">Docs</a></li>
   </ul>
@@ -788,6 +833,100 @@ section{scroll-margin-top:80px}
   </div>
 </section>
 
+<!-- ═══════════════════════════════════════════ TEAM -->
+<section id="team" aria-labelledby="team-hl">
+  <div class="team-in">
+    <p class="sec-lbl">// THE TEAM</p>
+    <div class="sec-title" id="team-hl">
+      <span class="t1" style="color:#fff">Five people.</span>
+      <span class="t2">One operating system.</span>
+    </div>
+    <div class="team-grid">
+
+      <!-- Muzammil Hussain -->
+      <div class="tcard" tabindex="0" role="button" aria-expanded="false">
+        <div class="tphoto">
+          <img src="https://eifekuyolhwviuwstrhp.supabase.co/storage/v1/object/public/team-photos/muzammil.jpg" alt="Muzammil Hussain" loading="lazy">
+        </div>
+        <div class="tinfo">
+          <div class="tname">Muzammil Hussain</div>
+          <div class="trole">CPO &amp; CTO</div>
+          <div class="tbio">A Management Sciences graduate from LUMS, Muzammil has worked across product at VentureDive, data and marketing at EduFi, and operations at Game District, and founded a campus retail venture along the way. At KitchenOS he designed the database architecture, built the automation workflows, directed the frontend, and made the calls on what the product should actually do and why.</div>
+          <a href="https://linkedin.com/in/muzammil0352" class="tli" target="_blank" rel="noopener" aria-label="LinkedIn">
+            <i data-lucide="linkedin" style="width:11px;height:11px"></i>
+            linkedin.com/in/muzammil0352
+          </a>
+        </div>
+      </div>
+
+      <!-- Muhammad Awais Hussain -->
+      <div class="tcard" tabindex="0" role="button" aria-expanded="false">
+        <div class="tphoto">
+          <img src="https://eifekuyolhwviuwstrhp.supabase.co/storage/v1/object/public/team-photos/awais.jpg" alt="Muhammad Awais Hussain" loading="lazy">
+        </div>
+        <div class="tinfo">
+          <div class="tname">Muhammad Awais Hussain</div>
+          <div class="trole">Chief Intelligence Officer</div>
+          <div class="tbio">Awais has spent his time at LUMS doing things most finance students don't attempt until years into a career. Stints at PwC, KPMG, AKD Securities and Descon gave him a front-row seat to how real businesses make decisions under uncertainty. At KitchenOS he turns raw kitchen data into intelligence that tells an owner exactly what to order, what to reprice, and what to stop worrying about.</div>
+          <a href="https://linkedin.com/in/muhammadawaishussain" class="tli" target="_blank" rel="noopener" aria-label="LinkedIn">
+            <i data-lucide="linkedin" style="width:11px;height:11px"></i>
+            linkedin.com/in/muhammadawaishussain
+          </a>
+        </div>
+      </div>
+
+      <!-- Hamza Iqbal -->
+      <div class="tcard" tabindex="0" role="button" aria-expanded="false">
+        <div class="tphoto">
+          <img src="https://eifekuyolhwviuwstrhp.supabase.co/storage/v1/object/public/team-photos/hamza.jpg" alt="Hamza Iqbal" loading="lazy">
+        </div>
+        <div class="tinfo">
+          <div class="tname">Hamza Iqbal</div>
+          <div class="trole">Chief Data Officer</div>
+          <div class="tbio">Hamza understands that good decisions start with clean data, and at KitchenOS he is the person making sure that foundation never cracks. A Management Sciences senior at LUMS with experience at PSO and NBP, he built the costing engine that knows what every dish actually costs to make, down to the gram.</div>
+          <a href="https://linkedin.com/in/hamxa-iqbal" class="tli" target="_blank" rel="noopener" aria-label="LinkedIn">
+            <i data-lucide="linkedin" style="width:11px;height:11px"></i>
+            linkedin.com/in/hamxa-iqbal
+          </a>
+        </div>
+      </div>
+
+      <!-- Arsalan Abid -->
+      <div class="tcard" tabindex="0" role="button" aria-expanded="false">
+        <div class="tphoto">
+          <img src="https://eifekuyolhwviuwstrhp.supabase.co/storage/v1/object/public/team-photos/arsalan.jpg" alt="Arsalan Abid" loading="lazy">
+        </div>
+        <div class="tinfo">
+          <div class="tname">Arsalan Abid</div>
+          <div class="trole">Chief Operations Officer</div>
+          <div class="tbio">Arsalan has a consultant's instinct for finding where things break and fixing them before they do. With experience at GoSaaS, PSO and Paklaunch, he brought that same rigor to KitchenOS, building the automation layer that keeps kitchens stocked, suppliers informed, and operations running without anyone having to chase a spreadsheet.</div>
+          <a href="https://linkedin.com/in/arsalanabidd" class="tli" target="_blank" rel="noopener" aria-label="LinkedIn">
+            <i data-lucide="linkedin" style="width:11px;height:11px"></i>
+            linkedin.com/in/arsalanabidd
+          </a>
+        </div>
+      </div>
+
+      <!-- Abdullah Ahmad -->
+      <div class="tcard" tabindex="0" role="button" aria-expanded="false">
+        <div class="tphoto">
+          <img src="https://eifekuyolhwviuwstrhp.supabase.co/storage/v1/object/public/team-photos/abdullah.jpg" alt="Abdullah Ahmad" loading="lazy">
+        </div>
+        <div class="tinfo">
+          <div class="tname">Abdullah Ahmad</div>
+          <div class="trole">Chief Growth Officer</div>
+          <div class="tbio">Abdullah has been building audiences since before it was a job title. With campaigns at Coca-Cola and P&amp;G on his resume and a content portfolio that has crossed 100K views, he knows how brands earn attention and keep it. At KitchenOS he owns the customer side of the business, designing the system that turns a one-time order into a loyal repeat customer.</div>
+          <a href="https://linkedin.com/in/abdullah-ahmad19" class="tli" target="_blank" rel="noopener" aria-label="LinkedIn">
+            <i data-lucide="linkedin" style="width:11px;height:11px"></i>
+            linkedin.com/in/abdullah-ahmad19
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <!-- ═══════════════════════════════════════════ PRICING -->
 <section id="pricing" aria-labelledby="p-hl">
   <div class="sec-in">
@@ -1070,7 +1209,7 @@ lucide.createIcons();
 
 /* ── SECTION REVEALS ── */
 (function(){
-  ['#proof','#features .sec-in','#how .how-intro','#pricing .sec-in'].forEach(sel=>{
+  ['#proof','#features .sec-in','#how .how-intro','#team .team-in','#pricing .sec-in'].forEach(sel=>{
     const el=document.querySelector(sel);
     if(!el)return;
     el.classList.add('reveal');
@@ -1084,6 +1223,28 @@ lucide.createIcons();
   });
   document.querySelectorAll('.pcard').forEach((c,i)=>{
     gsap.from(c,{scrollTrigger:{trigger:c,start:'top 88%'},opacity:0,y:28,duration:.7,delay:i*.12,ease:'power3.out'});
+  });
+  document.querySelectorAll('.tcard').forEach((c,i)=>{
+    gsap.from(c,{scrollTrigger:{trigger:c,start:'top 90%'},opacity:0,y:40,duration:.8,delay:i*.1,ease:'power3.out'});
+  });
+})();
+
+/* ── TEAM CARD TOGGLE ── */
+(function(){
+  const cards=document.querySelectorAll('.tcard');
+  cards.forEach(card=>{
+    card.addEventListener('click',()=>{
+      const isOpen=card.classList.contains('open');
+      cards.forEach(c=>{c.classList.remove('open');c.setAttribute('aria-expanded','false')});
+      if(!isOpen){card.classList.add('open');card.setAttribute('aria-expanded','true')}
+    });
+    card.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();card.click()}
+    });
+  });
+  // Close on outside click
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('.tcard'))cards.forEach(c=>{c.classList.remove('open');c.setAttribute('aria-expanded','false')});
   });
 })();
 
