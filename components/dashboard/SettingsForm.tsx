@@ -15,7 +15,7 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
     city:               kitchen.city              || '',
     slug:               kitchen.slug              || '',
     welcome_banner:     kitchen.welcome_banner    || '',
-    notify_channel:     kitchen.settings?.notify_channel    || 'email',
+    notify_channel:     'email',
     delivery_radius_km: kitchen.settings?.delivery_radius_km ?? 5,
     avatar_url:         kitchen.avatar_url        || '',
   }
@@ -223,49 +223,6 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
         </div>
       </section>
 
-      {/* ── Notifications ───────────────────────────────── */}
-      <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div>
-          <h3 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '13px', color: 'var(--color-ink-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Notifications</h3>
-          <div style={{ height: '1px', background: 'var(--color-border)', marginTop: '8px' }} />
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '300px' }}>
-          <label htmlFor="delivery_radius_km" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-ink-2)' }}>Delivery Radius (km)</label>
-          <input id="delivery_radius_km" type="number" min="1" max="50" required value={formData.delivery_radius_km} onChange={e => setFormData({ ...formData, delivery_radius_km: e.target.value })} style={{ fontFamily: 'var(--font-mono)' }} />
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-ink-2)' }}>Notification Channel</label>
-          <div style={{ display: 'inline-flex', border: '1px solid var(--color-border-mid)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-            {[
-              { value: 'email', label: 'Email only' },
-              { value: 'whatsapp', label: 'WhatsApp only' },
-              { value: 'both', label: 'Both' },
-            ].map((opt, i, arr) => {
-              const isActive = formData.notify_channel === opt.value
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, notify_channel: opt.value })}
-                  style={{
-                    padding: '8px 16px', fontSize: '13px', fontFamily: 'var(--font-body)', fontWeight: 500,
-                    cursor: 'pointer', border: 'none',
-                    borderRight: i < arr.length - 1 ? '1px solid var(--color-border-mid)' : 'none',
-                    background: isActive ? 'var(--color-accent)' : 'transparent',
-                    color: isActive ? '#FFFFFF' : 'var(--color-ink-2)',
-                    transition: 'background 150ms ease, color 150ms ease',
-                  }}
-                >
-                  {opt.label}
-                </button>
-              )
-            })}
-          </div>
-          <p style={{ fontSize: '12px', color: 'var(--color-ink-3)' }}>How you receive important alerts like AI reorder suggestions.</p>
-        </div>
-      </section>
 
       {/* ── Footer ──────────────────────────────────────── */}
       <div style={{ paddingTop: '24px', borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
