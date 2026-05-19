@@ -52,6 +52,10 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
   const [activeCategory, setActiveCategory] = useState(categories[0] || '')
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   const [activeOrder, setActiveOrder] = useState<{ orderId: string; status: string } | null>(null)
+  const [localFeedbacks, setLocalFeedbacks] = useState<Feedback[]>(feedbacks)
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  const [reviewError, setReviewError] = useState<string | null>(null)
+  const [reviewSuccess, setReviewSuccess] = useState(false)
   const mainRef = useRef<HTMLDivElement>(null)
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
 
@@ -84,6 +88,47 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
     })
     return () => observers.forEach(o => o.disconnect())
   }, [categories])
+
+  const handleSubmitReview = async () => {
+    if (reviewRating === 0) { setReviewError('Please select a star rating.'); return }
+    if (!activeOrder?.orderId) { setReviewError('No order found. Track your order first so we can link your review.'); return }
+
+    setReviewSubmitting(true)
+    setReviewError(null)
+
+    try {
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: activeOrder.orderId,
+          kitchen_id: kitchen.kitchen_id,
+          rating: reviewRating,
+          comment: reviewText || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setReviewError(data.error || 'Failed to submit. Please try again.')
+      } else {
+        setLocalFeedbacks(prev => [{
+          feedback_id: Math.random().toString(36).slice(2),
+          rating: reviewRating,
+          comment: reviewText || null,
+          created_at: new Date().toISOString(),
+          customers: null,
+        }, ...prev])
+        setReviewText('')
+        setReviewRating(0)
+        setReviewSuccess(true)
+        setTimeout(() => setReviewSuccess(false), 3000)
+      }
+    } catch {
+      setReviewError('Network error. Please try again.')
+    } finally {
+      setReviewSubmitting(false)
+    }
+  }
 
   const openCart = () => { setCartOpen(true); setIsReviewsOpen(false); setIsTrackOpen(false) }
   const openReviews = () => { setIsReviewsOpen(true); setCartOpen(false); setIsTrackOpen(false) }
@@ -561,12 +606,19 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
               </div>
               <button
                 className="btn-primary"
-                style={{ padding: '8px 18px', fontSize: '13px', fontWeight: 600, borderRadius: '100px' }}
-                onClick={() => { setReviewText(''); setReviewRating(0) }}
+                style={{ padding: '8px 18px', fontSize: '13px', fontWeight: 600, borderRadius: '100px', opacity: reviewSubmitting ? 0.6 : 1 }}
+                onClick={handleSubmitReview}
+                disabled={reviewSubmitting}
               >
-                Submit
+                {reviewSubmitting ? 'Submitting...' : 'Submit'}
               </button>
             </div>
+            {reviewError && (
+              <p style={{ fontFamily: 'var(--font-ui)', fontSize: '12px', color: '#dc2626', marginTop: '8px' }}>{reviewError}</p>
+            )}
+            {reviewSuccess && (
+              <p style={{ fontFamily: 'var(--font-ui)', fontSize: '12px', color: '#16a34a', marginTop: '8px' }}>Thank you for your review!</p>
+            )}
           </div>
 
           {/* Reviews list */}
@@ -574,22 +626,22 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>All Reviews</span>
               <span style={{ fontFamily: 'var(--font-ui)', fontSize: '13px', color: 'var(--text-muted)' }}>
-                {feedbacks.length} review{feedbacks.length !== 1 ? 's' : ''}
+                {localFeedbacks.length} review{localFeedbacks.length !== 1 ? 's' : ''}
               </span>
             </div>
 
-            {feedbacks.length === 0 ? (
+            {localFeedbacks.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 0', textAlign: 'center' }}>
                 <Star size={40} strokeWidth={1.5} color="var(--text-muted)" />
                 <p style={{ fontFamily: 'var(--font-display)', fontSize: '16px', color: 'var(--text-muted)', margin: '12px 0 4px' }}>No reviews yet.</p>
                 <p style={{ fontFamily: 'var(--font-ui)', fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>Be the first to leave one.</p>
               </div>
             ) : (
-              feedbacks.map((fb, idx) => {
+              localFeedbacks.map((fb, idx) => {
                 const name = fb.customers?.name || 'Guest'
                 const initials = name.split(' ').map((w: string) => w[0]).join('').substring(0, 2).toUpperCase()
                 return (
-                  <div key={fb.feedback_id} style={{ padding: '14px 0', borderBottom: idx < feedbacks.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                  <div key={fb.feedback_id} style={{ padding: '14px 0', borderBottom: idx < localFeedbacks.length - 1 ? '1px solid var(--border)' : 'none' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
