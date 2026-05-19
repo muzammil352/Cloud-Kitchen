@@ -14,6 +14,7 @@ function FeedbackForm() {
   const [comment, setComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   if (!orderId || !kitchenId) {
     return (
@@ -28,8 +29,9 @@ function FeedbackForm() {
     if (rating === 0) return
 
     setIsSubmitting(true)
+    setSubmitError(null)
     try {
-      await fetch('/api/feedback', {
+      const res = await fetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -39,10 +41,15 @@ function FeedbackForm() {
           comment: comment || null,
         }),
       })
-      setSubmitted(true)
+      const data = await res.json()
+      if (!res.ok) {
+        setSubmitError(data.error || 'Something went wrong. Please try again.')
+      } else {
+        setSubmitted(true)
+      }
     } catch (err) {
       console.error(err)
-      setSubmitted(true)
+      setSubmitError('Network error. Please check your connection and try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -103,9 +110,13 @@ function FeedbackForm() {
           />
         </div>
 
-        <Button 
-          type="submit" 
-          className="w-full h-12 text-base font-medium" 
+        {submitError && (
+          <p className="text-sm text-red-500 text-center">{submitError}</p>
+        )}
+
+        <Button
+          type="submit"
+          className="w-full h-12 text-base font-medium"
           disabled={rating === 0 || isSubmitting}
         >
           {isSubmitting ? 'Submitting...' : 'Submit Feedback'}

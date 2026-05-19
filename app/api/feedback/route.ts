@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 
 const FeedbackSchema = z.object({
@@ -8,6 +8,13 @@ const FeedbackSchema = z.object({
   rating:     z.number().int().min(1).max(5),
   comment:    z.string().max(500).nullable().optional(),
 })
+
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !key) throw new Error('Missing Supabase env vars')
+  return createClient(url, key)
+}
 
 export async function POST(req: Request) {
   try {
@@ -18,9 +25,9 @@ export async function POST(req: Request) {
     }
 
     const { order_id, kitchen_id, rating, comment } = parsed.data
-    const supabase = createClient()
+    const supabase = getSupabase()
 
-    // Look up customer_id from the order (also validates the order belongs to this kitchen)
+    // Look up customer_id from the order
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select('customer_id')
@@ -29,6 +36,7 @@ export async function POST(req: Request) {
       .single()
 
     if (orderError || !order) {
+      console.error('Order lookup failed:', orderError)
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
@@ -45,10 +53,10 @@ export async function POST(req: Request) {
 
     if (insertError) {
       console.error('Feedback insert failed:', insertError)
-      return NextResponse.json({ error: 'Failed to save feedback' }, { status: 500 })
+      return NextResponse.json({ error: insertError.message }, { status: 500 })
     }
 
-    // Notify N8N (fire-and-forget — don't block the response)
+    // Notify N8N fire-and-forget
     const feedbackIntakeUrl = process.env.N8N_FEEDBACK_INTAKE
     if (feedbackIntakeUrl) {
       fetch(feedbackIntakeUrl, {
