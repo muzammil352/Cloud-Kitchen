@@ -52,6 +52,32 @@ export default async function InventoryPage() {
       .order('created_at', { ascending: false }),
   ])
 
+  // Enrich low_stock / supplier_message approvals with supplier details from ingredients table
+  const ingredientIds = [...new Set(
+    (inventoryApprovals || [])
+      .map(a => (a.payload as any)?.ingredient_id)
+      .filter(Boolean)
+  )]
+  const { data: ingredientDetails } = ingredientIds.length > 0
+    ? await supabase.from('ingredients').select('ingredient_id, supplier_name').in('ingredient_id', ingredientIds)
+    : { data: [] }
+  const ingredientMap = Object.fromEntries((ingredientDetails || []).map(i => [i.ingredient_id, i]))
+
+  const enrichedInventoryApprovals = (inventoryApprovals || []).map(a => {
+    const iid = (a.payload as any)?.ingredient_id
+    if (iid && ingredientMap[iid]) {
+      const ing = ingredientMap[iid]
+      return {
+        ...a,
+        payload: {
+          ...(a.payload as any),
+          supplier_name: (a.payload as any).supplier_name || ing.supplier_name,
+        }
+      }
+    }
+    return a
+  })
+
   return (
     <div style={{ opacity: 0, animation: 'fadeIn 300ms forwards', paddingBottom: '48px' }}>
       <InventoryManager
@@ -61,7 +87,7 @@ export default async function InventoryPage() {
         inventoryTotals={totalRows?.[0] ?? null}
       />
       <PendingApprovalsTable
-        initialApprovals={inventoryApprovals || []}
+        initialApprovals={enrichedInventoryApprovals as any}
         kitchenId={profile.kitchen_id}
         title="Inventory Actions Pending Approval"
       />

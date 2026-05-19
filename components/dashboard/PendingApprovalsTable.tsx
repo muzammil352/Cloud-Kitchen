@@ -7,20 +7,32 @@ import { timeAgo } from '@/lib/utils'
 import { Check, X, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const TYPE_META: Record<string, { label: string; border: string; color: string; bg: string }> = {
-  win_back:         { label: 'Win-Back',        border: 'var(--color-blue)',   color: 'var(--color-blue)',   bg: 'var(--color-blue-bg)'   },
-  upsell:           { label: 'Upsell',           border: 'var(--color-accent)', color: 'var(--color-accent)', bg: 'var(--color-accent-bg)' },
-  low_stock:        { label: 'Low Stock',        border: 'var(--color-amber)',  color: 'var(--color-amber)',  bg: 'var(--color-amber-bg)'  },
-  supplier_message: { label: 'Supplier Msg',     border: 'var(--color-green)',  color: 'var(--color-green)',  bg: 'rgba(34,197,94,0.1)'   },
-  menu_disable:     { label: 'Menu Change',      border: 'var(--color-red)',    color: 'var(--color-red)',    bg: 'var(--color-red-bg)'    },
+  win_back:         { label: 'Win-Back',    border: 'var(--color-blue)',   color: 'var(--color-blue)',   bg: 'var(--color-blue-bg)'   },
+  upsell:           { label: 'Upsell',      border: 'var(--color-accent)', color: 'var(--color-accent)', bg: 'var(--color-accent-bg)' },
+  low_stock:        { label: 'Low Stock',   border: 'var(--color-amber)',  color: 'var(--color-amber)',  bg: 'var(--color-amber-bg)'  },
+  supplier_message: { label: 'Supplier',    border: 'var(--color-green)',  color: 'var(--color-green)',  bg: 'rgba(34,197,94,0.1)'   },
+  menu_disable:     { label: 'Menu Change', border: 'var(--color-red)',    color: 'var(--color-red)',    bg: 'var(--color-red-bg)'    },
 }
 
 function buildMessage(type: string, payload: Record<string, any>): string {
   if (type === 'low_stock')        return `${payload.ingredient_name || 'Ingredient'} is running low — ${payload.current_stock ?? 0} ${payload.unit ?? ''} remaining.`
-  if (type === 'win_back')         return `Send a win-back offer to ${payload.customer_name || 'a customer'} (last order: ${payload.last_order_date || 'unknown'}).`
-  if (type === 'upsell')           return `Suggest ${payload.item_name || 'an item'} to ${payload.customer_name || 'a customer'} based on order history.`
+  if (type === 'win_back')         return `Send win-back offer (last order: ${payload.last_order_date || 'unknown'}, discount: ${payload.discount || '10%'}).`
+  if (type === 'upsell')           return `Suggest ${payload.item_name || 'an item'} based on order history.`
   if (type === 'menu_disable')     return `Disable ${payload.item_name || 'a menu item'}${payload.reason ? ': ' + payload.reason : '.'}`
-  if (type === 'supplier_message') return `Message ${payload.supplier_name || 'supplier'}: ${payload.message_preview || 'auto-generated reorder message.'}`
+  if (type === 'supplier_message') return payload.message_preview || 'Auto-generated reorder message.'
   return payload.message || 'Action requires approval.'
+}
+
+function getNameContact(type: string, payload: Record<string, any>): { name: string; contact: string } {
+  if (['win_back', 'upsell'].includes(type)) {
+    const contact = payload.customer_phone || payload.customer_email || '—'
+    return { name: payload.customer_name || '—', contact }
+  }
+  if (['low_stock', 'supplier_message'].includes(type)) {
+    const contact = payload.supplier_phone || payload.supplier_email || '—'
+    return { name: payload.supplier_name || '—', contact }
+  }
+  return { name: '—', contact: '—' }
 }
 
 const PAGE_SIZE = 10
@@ -69,12 +81,10 @@ export function PendingApprovalsTable({
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error ?? `Failed (${res.status})`)
-      setApprovals(prev => prev.filter(a => a.notification_id !== id))
-      // Adjust page if last item on current page was removed
-      setPage(p => {
-        const newTotal = approvals.length - 1
-        const maxPage = Math.max(0, Math.ceil(newTotal / PAGE_SIZE) - 1)
-        return Math.min(p, maxPage)
+      setApprovals(prev => {
+        const next = prev.filter(a => a.notification_id !== id)
+        setPage(p => Math.min(p, Math.max(0, Math.ceil(next.length / PAGE_SIZE) - 1)))
+        return next
       })
     } catch (err: any) {
       setErrors(prev => ({ ...prev, [id]: err.message }))
@@ -88,7 +98,6 @@ export function PendingApprovalsTable({
 
   return (
     <div style={{ marginTop: '48px' }}>
-      {/* Section header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <h2 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '16px', color: 'var(--color-ink)' }}>{title}</h2>
@@ -131,6 +140,8 @@ export function PendingApprovalsTable({
             <thead>
               <tr>
                 <th>Type</th>
+                <th>Name</th>
+                <th>Contact</th>
                 <th>Action</th>
                 <th style={{ textAlign: 'right' }}>Age</th>
                 <th style={{ width: '140px' }}></th>
@@ -140,14 +151,21 @@ export function PendingApprovalsTable({
               {pageItems.map(item => {
                 const meta = TYPE_META[item.type] ?? { label: item.type, border: 'var(--color-border)', color: 'var(--color-ink-3)', bg: 'var(--color-surface-2)' }
                 const payload = item.payload as Record<string, any>
+                const { name, contact } = getNameContact(item.type, payload)
                 const isProcessing = processing.has(item.notification_id)
                 const err = errors[item.notification_id]
                 return (
                   <tr key={item.notification_id} style={{ opacity: isProcessing ? 0.5 : 1, transition: 'opacity 200ms' }}>
-                    <td style={{ width: '130px' }}>
+                    <td style={{ width: '110px' }}>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600, padding: '3px 8px', borderRadius: '100px', background: meta.bg, color: meta.color, border: `1px solid ${meta.border}`, whiteSpace: 'nowrap' }}>
                         {meta.label}
                       </span>
+                    </td>
+                    <td style={{ fontWeight: 500, fontSize: '13px', color: 'var(--color-ink)', whiteSpace: 'nowrap' }}>
+                      {name}
+                    </td>
+                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-ink-3)', whiteSpace: 'nowrap' }}>
+                      {contact}
                     </td>
                     <td>
                       <span style={{ fontSize: '13px', color: 'var(--color-ink)', lineHeight: 1.5 }}>
