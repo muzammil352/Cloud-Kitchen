@@ -179,7 +179,7 @@ export default function InventoryManager({
     const newRow = parseDraft(addDraft, kitchenId)
     const { data, error: err } = await supabase.from('ingredients').insert(newRow).select().single()
     if (err || !data) { setError(err?.message ?? 'Insert failed'); setSaving(false); return }
-    setItems(prev => [...prev, data as Ingredient])
+    setItems(prev => [data as Ingredient, ...prev])
     setAddDraft(BLANK_DRAFT)
     setIsAdding(false)
     setSaving(false)
@@ -300,6 +300,35 @@ export default function InventoryManager({
               </tr>
             </thead>
             <tbody>
+              {/* Add row — always at the top */}
+              {isAdding && (
+                <tr style={{ background: 'rgba(34,197,94,0.04)' }}>
+                  <td style={editTd()}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-ink-3)' }}>NEW</span>
+                  </td>
+                  <td style={editTd('130px')}><Select value={addDraft.category} onChange={v => setAddDraft(p => ({ ...p, category: v }))} options={CATEGORIES} placeholder="Category" /></td>
+                  <td style={editTd('160px')}><Input value={addDraft.name} onChange={v => setAddDraft(p => ({ ...p, name: v }))} placeholder="Ingredient name *" /></td>
+                  <td style={editTd('100px')}><Select value={addDraft.unit} onChange={v => setAddDraft(p => ({ ...p, unit: v }))} options={UNITS} /></td>
+                  <td style={editTd('100px')}><Input value={addDraft.current_stock} onChange={v => setAddDraft(p => ({ ...p, current_stock: v }))} type="number" placeholder="0" /></td>
+                  <td style={editTd('100px')}><Input value={addDraft.reorder_level} onChange={v => setAddDraft(p => ({ ...p, reorder_level: v }))} type="number" placeholder="Min" /></td>
+                  <td style={editTd('100px')}><Input value={addDraft.ideal_stock} onChange={v => setAddDraft(p => ({ ...p, ideal_stock: v }))} type="number" placeholder="Ideal" /></td>
+                  <td style={editTd('120px')}><Input value={addDraft.cost_per_unit} onChange={v => setAddDraft(p => ({ ...p, cost_per_unit: v }))} type="number" placeholder="0.00" /></td>
+                  <td style={editTd('150px')}><Input value={addDraft.supplier_name} onChange={v => setAddDraft(p => ({ ...p, supplier_name: v }))} placeholder="Supplier" /></td>
+                  <td style={editTd('90px')}><Input value={addDraft.lead_time_days} onChange={v => setAddDraft(p => ({ ...p, lead_time_days: v }))} type="number" placeholder="—" /></td>
+                  <td style={editTd('90px')}><Input value={addDraft.minimum_cover_days} onChange={v => setAddDraft(p => ({ ...p, minimum_cover_days: v }))} type="number" placeholder="—" /></td>
+                  <td style={editTd()}>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button onClick={handleAdd} disabled={saving || !addDraft.name.trim()} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '6px', border: 'none', background: 'var(--color-accent)', color: '#fff', fontSize: '12px', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: !addDraft.name.trim() ? 0.5 : 1 }}>
+                        <Check size={12} /> Add
+                      </button>
+                      <button onClick={() => { setIsAdding(false); setAddDraft(BLANK_DRAFT) }} style={{ display: 'flex', alignItems: 'center', padding: '5px 8px', borderRadius: '6px', border: '1px solid var(--color-border-mid)', background: 'transparent', color: 'var(--color-ink-2)', fontSize: '12px', cursor: 'pointer' }}>
+                        <X size={12} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )}
+
               {filtered.length === 0 && !isAdding && (
                 <tr>
                   <td colSpan={12} style={{ padding: '40px', textAlign: 'center', fontSize: '13px', color: 'var(--color-ink-3)', borderBottom: '1px solid var(--color-border)' }}>
@@ -378,34 +407,6 @@ export default function InventoryManager({
                 )
               })}
 
-              {/* Add row */}
-              {isAdding && (
-                <tr style={{ background: 'rgba(34,197,94,0.04)' }}>
-                  <td style={editTd()}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-ink-3)' }}>NEW</span>
-                  </td>
-                  <td style={editTd('130px')}><Select value={addDraft.category} onChange={v => setAddDraft(p => ({ ...p, category: v }))} options={CATEGORIES} placeholder="Category" /></td>
-                  <td style={editTd('160px')}><Input value={addDraft.name} onChange={v => setAddDraft(p => ({ ...p, name: v }))} placeholder="Ingredient name *" /></td>
-                  <td style={editTd('100px')}><Select value={addDraft.unit} onChange={v => setAddDraft(p => ({ ...p, unit: v }))} options={UNITS} /></td>
-                  <td style={editTd('100px')}><Input value={addDraft.current_stock} onChange={v => setAddDraft(p => ({ ...p, current_stock: v }))} type="number" placeholder="0" /></td>
-                  <td style={editTd('100px')}><Input value={addDraft.reorder_level} onChange={v => setAddDraft(p => ({ ...p, reorder_level: v }))} type="number" placeholder="Min" /></td>
-                  <td style={editTd('100px')}><Input value={addDraft.ideal_stock} onChange={v => setAddDraft(p => ({ ...p, ideal_stock: v }))} type="number" placeholder="Ideal" /></td>
-                  <td style={editTd('120px')}><Input value={addDraft.cost_per_unit} onChange={v => setAddDraft(p => ({ ...p, cost_per_unit: v }))} type="number" placeholder="0.00" /></td>
-                  <td style={editTd('150px')}><Input value={addDraft.supplier_name} onChange={v => setAddDraft(p => ({ ...p, supplier_name: v }))} placeholder="Supplier" /></td>
-                  <td style={editTd('90px')}><Input value={addDraft.lead_time_days} onChange={v => setAddDraft(p => ({ ...p, lead_time_days: v }))} type="number" placeholder="Days" /></td>
-                  <td style={editTd('90px')}><Input value={addDraft.minimum_cover_days} onChange={v => setAddDraft(p => ({ ...p, minimum_cover_days: v }))} type="number" placeholder="Days" /></td>
-                  <td style={editTd()}>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                      <button onClick={handleAdd} disabled={saving || !addDraft.name.trim()} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '6px', border: 'none', background: 'var(--color-accent)', color: '#fff', fontSize: '12px', fontWeight: 600, cursor: (saving || !addDraft.name.trim()) ? 'not-allowed' : 'pointer', opacity: (saving || !addDraft.name.trim()) ? 0.5 : 1 }}>
-                        <Check size={12} /> Add
-                      </button>
-                      <button onClick={() => { setIsAdding(false); setAddDraft(BLANK_DRAFT) }} style={{ display: 'flex', alignItems: 'center', padding: '5px 8px', borderRadius: '6px', border: '1px solid var(--color-border-mid)', background: 'transparent', color: 'var(--color-ink-2)', fontSize: '12px', cursor: 'pointer' }}>
-                        <X size={12} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
