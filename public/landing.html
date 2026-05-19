@@ -343,6 +343,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
   filter:grayscale(100%) brightness(.8) contrast(1.05);
   transform:scale(1.1);
   transition:filter .45s ease,transform .45s ease}
+.team-grid .tcard:nth-child(1) .tphoto img{transform:scale(1.1) translateY(10%)}
+.team-grid .tcard:nth-child(1):hover .tphoto img,.team-grid .tcard:nth-child(1):focus .tphoto img,.team-grid .tcard:nth-child(1).open .tphoto img{transform:scale(1.15) translateY(10%)}
+.team-grid .tcard:nth-child(2) .tphoto img{transform:scale(1.1) translateY(10%)}
+.team-grid .tcard:nth-child(2):hover .tphoto img,.team-grid .tcard:nth-child(2):focus .tphoto img,.team-grid .tcard:nth-child(2).open .tphoto img{transform:scale(1.15) translateY(10%)}
 .tcard:hover .tphoto img,.tcard:focus .tphoto img,.tcard.open .tphoto img{
   filter:grayscale(0%) brightness(1) contrast(1);
   transform:scale(1.15)}
