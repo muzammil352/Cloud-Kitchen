@@ -393,7 +393,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
   color:var(--muted);margin-top:44px;padding-top:32px;border-top:1px solid var(--border)}
 
 /* ── CREDIT STRIP (above footer) ── */
-#credit{background:var(--dark);padding:56px 40px 0;text-align:center}
+#credit{background:var(--dark);padding:0 40px;text-align:center;display:flex;align-items:center;justify-content:center}
 .fglass{
   max-width:520px;margin:0 auto;
   background:var(--bg);
@@ -403,7 +403,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
 .fbrand-tag{font-size:13px;color:var(--muted);line-height:1.7}
 
 /* ── FOOTER ── */
-#footer{background:var(--dark);border-radius:3rem 3rem 0 0;padding:24px 40px 28px;margin-top:0}
+#footer{background:var(--dark);padding:24px 40px 28px;margin-top:0}
 .fin{max-width:1200px;margin:0 auto}
 .fctitle{font-size:12px;font-weight:600;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:18px}
 .flinks{list-style:none;display:flex;flex-direction:column;gap:11px}
@@ -992,7 +992,7 @@ section{scroll-margin-top:80px}
 </section>
 
 <!-- ═══════════════════════════════════════════ CREDIT -->
-<div id="credit">
+<div id="credit" style="padding:56px 40px">
   <div class="fglass">
     <span class="fbrand-name" id="f-brand">KitchenOS</span>
     <p class="fbrand-tag">Built with 💖 as final course project for the course Generative AI for Businesses and Automations (DISC 472) in the Lahore University of Management Sciences. Spring 2026.</p>
@@ -1003,8 +1003,8 @@ section{scroll-margin-top:80px}
 <footer id="footer" aria-labelledby="f-brand">
   <div class="fin">
     <div class="fbot">
-      <p class="fcopy">© 2025 KitchenOS. Built in Pakistan.</p>
-      <div class="fstatus"><div class="sdot" aria-hidden="true"></div><span>All systems operational</span></div>
+      <p class="fcopy">© 2026 KitchenOS.</p>
+      <p class="fcopy">Proudly built in 🇵🇰</p>
     </div>
   </div>
 </footer>
