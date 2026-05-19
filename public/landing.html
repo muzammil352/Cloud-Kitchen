@@ -329,8 +329,11 @@ a,button,.nbtn,.pbtn,[role=button]{cursor:url("data:image/svg+xml;base64,PHN2ZyB
 .team-in{max-width:1200px;margin:0 auto}
 #team .sec-lbl{color:rgba(212,83,26,.6)}
 #team .t1{color:#fff}
-.team-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:56px}
-.tcard{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+/* 3-up first row, 2-up second row, centred */
+.team-grid{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;
+  gap:16px;margin-top:56px}
+.tcard{flex:0 0 calc(33.333% - 12px);max-width:calc(33.333% - 12px);
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
   border-radius:20px;overflow:hidden;cursor:pointer;
   transition:border-color .35s,box-shadow .35s,transform .35s;
   outline:none}
@@ -338,7 +341,7 @@ a,button,.nbtn,.pbtn,[role=button]{cursor:url("data:image/svg+xml;base64,PHN2ZyB
   border-color:rgba(212,83,26,.35);
   box-shadow:0 20px 60px rgba(0,0,0,.45);
   transform:translateY(-4px)}
-.tphoto{height:260px;overflow:hidden;position:relative;flex-shrink:0}
+.tphoto{height:280px;overflow:hidden;position:relative;flex-shrink:0}
 .tphoto img{width:100%;height:100%;object-fit:cover;object-position:center top;
   filter:grayscale(100%) brightness(.8) contrast(1.05);
   transition:filter .45s ease,transform .45s ease}
@@ -346,25 +349,19 @@ a,button,.nbtn,.pbtn,[role=button]{cursor:url("data:image/svg+xml;base64,PHN2ZyB
   filter:grayscale(0%) brightness(1) contrast(1);
   transform:scale(1.05)}
 .tinfo{padding:16px 18px 18px}
+.tname-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
 .tname{font-family:'Fraunces',serif;font-size:16px;font-weight:700;
-  line-height:1.2;color:#fff;margin-bottom:4px}
+  line-height:1.2;color:#fff}
+.tli{display:flex;align-items:center;color:rgba(212,83,26,.7);
+  text-decoration:none;flex-shrink:0;transition:color .2s}
+.tli:hover{color:#fff}
 .trole{font-family:'JetBrains Mono',monospace;font-size:8.5px;
-  color:rgba(212,83,26,.75);text-transform:uppercase;letter-spacing:.07em;
-  margin-bottom:0}
+  color:rgba(212,83,26,.75);text-transform:uppercase;letter-spacing:.07em}
 .tbio{font-size:12px;line-height:1.7;color:rgba(255,255,255,.4);
   max-height:0;overflow:hidden;opacity:0;
   transition:max-height .5s cubic-bezier(.16,1,.3,1),opacity .35s .05s}
 .tcard:hover .tbio,.tcard:focus .tbio,.tcard.open .tbio{
   max-height:260px;opacity:1;margin-top:12px}
-.tli{display:inline-flex;align-items:center;gap:5px;
-  font-family:'JetBrains Mono',monospace;font-size:9px;
-  color:rgba(212,83,26,.6);text-decoration:none;
-  opacity:0;transform:translateY(5px);
-  transition:opacity .25s .12s,transform .25s .12s,color .2s;
-  margin-top:10px}
-.tcard:hover .tli,.tcard:focus .tli,.tcard.open .tli{opacity:1;transform:translateY(0)}
-.tli:hover{color:#fff}
-.tli svg{flex-shrink:0}
 
 /* ── PRICING ── */
 #pricing{padding:120px 40px}
@@ -428,8 +425,8 @@ a,button,.nbtn,.pbtn,[role=button]{cursor:url("data:image/svg+xml;base64,PHN2ZyB
   .ftop{grid-template-columns:1fr 1fr;gap:36px}
   .ftop>:first-child{grid-column:1/-1}
   .mock-kanban{grid-template-columns:repeat(2,1fr)}
-  .team-grid{grid-template-columns:repeat(2,1fr)}
-  .team-grid .tcard:last-child{grid-column:1/-1;max-width:340px;margin:0 auto;width:100%}
+  .tcard{flex:0 0 calc(50% - 8px);max-width:calc(50% - 8px)}
+  .tcard:last-child{flex:0 0 100%;max-width:360px}
 }
 section{scroll-margin-top:80px}
 </style>
@@ -849,13 +846,14 @@ section{scroll-margin-top:80px}
           <img src="https://eifekuyolhwviuwstrhp.supabase.co/storage/v1/object/public/team-photos/muzammil.png" alt="Muzammil Hussain" loading="lazy">
         </div>
         <div class="tinfo">
-          <div class="tname">Muzammil Hussain</div>
+          <div class="tname-row">
+            <div class="tname">Muzammil Hussain</div>
+            <a href="https://linkedin.com/in/muzammil0352" class="tli" target="_blank" rel="noopener" aria-label="LinkedIn profile">
+              <i data-lucide="linkedin" style="width:15px;height:15px"></i>
+            </a>
+          </div>
           <div class="trole">CPO &amp; CTO</div>
           <div class="tbio">A Management Sciences graduate from LUMS, Muzammil has worked across product at VentureDive, data and marketing at EduFi, and operations at Game District, and founded a campus retail venture along the way. At KitchenOS he designed the database architecture, built the automation workflows, directed the frontend, and made the calls on what the product should actually do and why.</div>
-          <a href="https://linkedin.com/in/muzammil0352" class="tli" target="_blank" rel="noopener" aria-label="LinkedIn">
-            <i data-lucide="linkedin" style="width:11px;height:11px"></i>
-            linkedin.com/in/muzammil0352
-          </a>
         </div>
       </div>
 
@@ -865,13 +863,14 @@ section{scroll-margin-top:80px}
           <img src="https://eifekuyolhwviuwstrhp.supabase.co/storage/v1/object/public/team-photos/awais.png" alt="Muhammad Awais Hussain" loading="lazy">
         </div>
         <div class="tinfo">
-          <div class="tname">Muhammad Awais Hussain</div>
+          <div class="tname-row">
+            <div class="tname">Muhammad Awais Hussain</div>
+            <a href="https://linkedin.com/in/muhammadawaishussain" class="tli" target="_blank" rel="noopener" aria-label="LinkedIn profile">
+              <i data-lucide="linkedin" style="width:15px;height:15px"></i>
+            </a>
+          </div>
           <div class="trole">Chief Intelligence Officer</div>
           <div class="tbio">Awais has spent his time at LUMS doing things most finance students don't attempt until years into a career. Stints at PwC, KPMG, AKD Securities and Descon gave him a front-row seat to how real businesses make decisions under uncertainty. At KitchenOS he turns raw kitchen data into intelligence that tells an owner exactly what to order, what to reprice, and what to stop worrying about.</div>
-          <a href="https://linkedin.com/in/muhammadawaishussain" class="tli" target="_blank" rel="noopener" aria-label="LinkedIn">
-            <i data-lucide="linkedin" style="width:11px;height:11px"></i>
-            linkedin.com/in/muhammadawaishussain
-          </a>
         </div>
       </div>
 
@@ -881,13 +880,14 @@ section{scroll-margin-top:80px}
           <img src="https://eifekuyolhwviuwstrhp.supabase.co/storage/v1/object/public/team-photos/hamza.png" alt="Hamza Iqbal" loading="lazy">
         </div>
         <div class="tinfo">
-          <div class="tname">Hamza Iqbal</div>
+          <div class="tname-row">
+            <div class="tname">Hamza Iqbal</div>
+            <a href="https://linkedin.com/in/hamxa-iqbal" class="tli" target="_blank" rel="noopener" aria-label="LinkedIn profile">
+              <i data-lucide="linkedin" style="width:15px;height:15px"></i>
+            </a>
+          </div>
           <div class="trole">Chief Data Officer</div>
           <div class="tbio">Hamza understands that good decisions start with clean data, and at KitchenOS he is the person making sure that foundation never cracks. A Management Sciences senior at LUMS with experience at PSO and NBP, he built the costing engine that knows what every dish actually costs to make, down to the gram.</div>
-          <a href="https://linkedin.com/in/hamxa-iqbal" class="tli" target="_blank" rel="noopener" aria-label="LinkedIn">
-            <i data-lucide="linkedin" style="width:11px;height:11px"></i>
-            linkedin.com/in/hamxa-iqbal
-          </a>
         </div>
       </div>
 
@@ -897,13 +897,14 @@ section{scroll-margin-top:80px}
           <img src="https://eifekuyolhwviuwstrhp.supabase.co/storage/v1/object/public/team-photos/arsalan.png" alt="Arsalan Abid" loading="lazy">
         </div>
         <div class="tinfo">
-          <div class="tname">Arsalan Abid</div>
+          <div class="tname-row">
+            <div class="tname">Arsalan Abid</div>
+            <a href="https://linkedin.com/in/arsalanabidd" class="tli" target="_blank" rel="noopener" aria-label="LinkedIn profile">
+              <i data-lucide="linkedin" style="width:15px;height:15px"></i>
+            </a>
+          </div>
           <div class="trole">Chief Operations Officer</div>
           <div class="tbio">Arsalan has a consultant's instinct for finding where things break and fixing them before they do. With experience at GoSaaS, PSO and Paklaunch, he brought that same rigor to KitchenOS, building the automation layer that keeps kitchens stocked, suppliers informed, and operations running without anyone having to chase a spreadsheet.</div>
-          <a href="https://linkedin.com/in/arsalanabidd" class="tli" target="_blank" rel="noopener" aria-label="LinkedIn">
-            <i data-lucide="linkedin" style="width:11px;height:11px"></i>
-            linkedin.com/in/arsalanabidd
-          </a>
         </div>
       </div>
 
@@ -913,13 +914,14 @@ section{scroll-margin-top:80px}
           <img src="https://eifekuyolhwviuwstrhp.supabase.co/storage/v1/object/public/team-photos/abdullah.png" alt="Abdullah Ahmad" loading="lazy">
         </div>
         <div class="tinfo">
-          <div class="tname">Abdullah Ahmad</div>
+          <div class="tname-row">
+            <div class="tname">Abdullah Ahmad</div>
+            <a href="https://linkedin.com/in/abdullah-ahmad19" class="tli" target="_blank" rel="noopener" aria-label="LinkedIn profile">
+              <i data-lucide="linkedin" style="width:15px;height:15px"></i>
+            </a>
+          </div>
           <div class="trole">Chief Growth Officer</div>
           <div class="tbio">Abdullah has been building audiences since before it was a job title. With campaigns at Coca-Cola and P&amp;G on his resume and a content portfolio that has crossed 100K views, he knows how brands earn attention and keep it. At KitchenOS he owns the customer side of the business, designing the system that turns a one-time order into a loyal repeat customer.</div>
-          <a href="https://linkedin.com/in/abdullah-ahmad19" class="tli" target="_blank" rel="noopener" aria-label="LinkedIn">
-            <i data-lucide="linkedin" style="width:11px;height:11px"></i>
-            linkedin.com/in/abdullah-ahmad19
-          </a>
         </div>
       </div>
 
