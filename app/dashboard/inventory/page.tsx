@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import InventoryManager from './InventoryManager'
+import { PendingApprovalsTable } from '@/components/dashboard/PendingApprovalsTable'
 
 export const revalidate = 0
 
@@ -22,6 +23,7 @@ export default async function InventoryPage() {
     { data: ingredients },
     { data: inventoryValues },
     { data: totalRows },
+    { data: inventoryApprovals },
   ] = await Promise.all([
     supabase
       .from('ingredients')
@@ -41,6 +43,13 @@ export default async function InventoryPage() {
       .eq('kitchen_id', profile.kitchen_id)
       .order('computed_at', { ascending: false })
       .limit(1),
+    supabase
+      .from('notifications_log')
+      .select('*')
+      .eq('kitchen_id', profile.kitchen_id)
+      .eq('status', 'pending')
+      .in('type', ['low_stock', 'supplier_message', 'menu_disable'])
+      .order('created_at', { ascending: false }),
   ])
 
   return (
@@ -50,6 +59,11 @@ export default async function InventoryPage() {
         kitchenId={profile.kitchen_id}
         inventoryValues={inventoryValues || []}
         inventoryTotals={totalRows?.[0] ?? null}
+      />
+      <PendingApprovalsTable
+        initialApprovals={inventoryApprovals || []}
+        kitchenId={profile.kitchen_id}
+        title="Inventory Actions Pending Approval"
       />
     </div>
   )
