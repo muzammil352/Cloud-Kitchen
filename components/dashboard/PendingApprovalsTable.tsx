@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { NotificationLog } from '@/lib/types'
 import { timeAgo } from '@/lib/utils'
 import { Check, X, ChevronLeft, ChevronRight, CheckCheck, Trash2 } from 'lucide-react'
+import { useToast, Toasts } from '@/components/shared/useToast'
 
 const TYPE_META: Record<string, { label: string; border: string; color: string; bg: string }> = {
   win_back:         { label: 'Win-Back',    border: 'var(--color-blue)',   color: 'var(--color-blue)',   bg: 'var(--color-blue-bg)'   },
@@ -51,6 +52,7 @@ export function PendingApprovalsTable({
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [page,        setPage]        = useState(0)
 
+  const { toasts, toast, dismiss } = useToast()
   const supabase = createClient()
 
   // Realtime subscription
@@ -105,8 +107,10 @@ export function PendingApprovalsTable({
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error ?? `Failed (${res.status})`)
       removeIds([id])
+      toast(`${action === 'approve' ? 'Approved' : 'Rejected'} successfully.`, 'success')
     } catch (err: any) {
       setErrors(prev => ({ ...prev, [id]: err.message }))
+      toast(err.message || 'Action failed. Please try again.', 'error')
     } finally {
       setProcessing(prev => { const s = new Set(prev); s.delete(id); return s })
     }
@@ -128,8 +132,10 @@ export function PendingApprovalsTable({
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error ?? `Failed (${res.status})`)
       removeIds(ids)
+      toast(`${ids.length} item${ids.length > 1 ? 's' : ''} ${action === 'approve' ? 'approved' : 'rejected'} successfully.`, 'success')
     } catch (err: any) {
       ids.forEach(id => setErrors(prev => ({ ...prev, [id]: err.message })))
+      toast(err.message || 'Bulk action failed. Please try again.', 'error')
     } finally {
       ids.forEach(id => setProcessing(prev => { const s = new Set(prev); s.delete(id); return s }))
     }
@@ -293,6 +299,8 @@ export function PendingApprovalsTable({
           </table>
         </div>
       )}
+
+      <Toasts toasts={toasts} dismiss={dismiss} />
     </div>
   )
 }

@@ -73,6 +73,19 @@ export function OrderBoard({ initialOrders, kitchenId }: { initialOrders: Order[
     return () => { supabase.removeChannel(channel) }
   }, [kitchenId, supabase])
 
+  const confirmOrder = async (orderId: string, kitchenId: string): Promise<{ error?: string }> => {
+    const res = await fetch('/api/orders/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order_id: orderId, kitchen_id: kitchenId }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      return { error: data.error ?? 'Confirm failed' }
+    }
+    return {}
+  }
+
   const pushN8NStatus = (order: Order, oldStatus: OrderStatus, newStatus: OrderStatus) => {
     const statusUrl = process.env.NEXT_PUBLIC_N8N_STATUS_UPDATE
     if (!statusUrl) return
@@ -97,14 +110,16 @@ export function OrderBoard({ initialOrders, kitchenId }: { initialOrders: Order[
     setUpdatingIds(prev => new Set(prev).add(order.order_id))
     setOrders(prev => prev.map(o => o.order_id === order.order_id ? { ...o, status: newStatus } : o))
 
-    const { error } = await updateOrderStatus(order.order_id, newStatus)
+    const result = newStatus === 'confirmed'
+      ? await confirmOrder(order.order_id, order.kitchen_id)
+      : await updateOrderStatus(order.order_id, newStatus)
 
     setUpdatingIds(prev => { const s = new Set(prev); s.delete(order.order_id); return s })
 
-    if (error) {
-      console.error('Order update failed:', order.order_id, error)
+    if (result.error) {
+      console.error('Order update failed:', order.order_id, result.error)
       setOrders(prev => prev.map(o => o.order_id === order.order_id ? { ...o, status: oldStatus } : o))
-      alert(`Failed to update order status: ${error}`)
+      alert(`Failed to update order status: ${result.error}`)
     } else {
       pushN8NStatus(order, oldStatus, newStatus)
     }
@@ -121,10 +136,12 @@ export function OrderBoard({ initialOrders, kitchenId }: { initialOrders: Order[
     let failed = 0
     for (const orderId of ids) {
       const order = previousOrders.find(o => o.order_id === orderId)
-      const { error } = await updateOrderStatus(orderId, newStatus)
+      const result = newStatus === 'confirmed' && order
+        ? await confirmOrder(orderId, order.kitchen_id)
+        : await updateOrderStatus(orderId, newStatus)
 
-      if (error) {
-        console.error('Bulk update failed:', orderId, error)
+      if (result.error) {
+        console.error('Bulk update failed:', orderId, result.error)
         failed++
       } else if (order) {
         pushN8NStatus(order, order.status, newStatus)

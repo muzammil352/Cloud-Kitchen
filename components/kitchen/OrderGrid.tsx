@@ -146,14 +146,29 @@ export function OrderGrid({ initialOrders, kitchenId }: { initialOrders: Order[]
        setActiveOrders(prev => prev.map(o => o.order_id === order.order_id ? { ...o, status: nextState } : o))
     }
 
-    const { error } = await supabase
-      .from('orders')
-      .update({ status: nextState, updated_at: new Date().toISOString() })
-      .eq('order_id', order.order_id)
-      
-    if (error) {
-      console.error("Critical: Failed to explicitly march status natively", error)
+    let updateError = false
+    if (nextState === 'confirmed') {
+      const res = await fetch('/api/orders/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: order.order_id, kitchen_id: order.kitchen_id }),
+      })
+      if (!res.ok) {
+        console.error('Critical: Failed to confirm order via API')
+        updateError = true
+      }
     } else {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: nextState, updated_at: new Date().toISOString() })
+        .eq('order_id', order.order_id)
+      if (error) {
+        console.error('Critical: Failed to explicitly march status natively', error)
+        updateError = true
+      }
+    }
+
+    if (!updateError) {
       const statusUrl = process.env.NEXT_PUBLIC_N8N_STATUS_UPDATE
       if (statusUrl) {
         fetch(statusUrl, {
@@ -171,7 +186,7 @@ export function OrderGrid({ initialOrders, kitchenId }: { initialOrders: Order[]
       }
     }
 
-    if (!error && nextState === 'delivered') {
+    if (!updateError && nextState === 'delivered') {
       const itemNames = order.order_items?.map((i: any) => i.menu_items?.name || 'Item') || []
       const kitchen_id = order.kitchen_id
       const customer_id = order.customer_id

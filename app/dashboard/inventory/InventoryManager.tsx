@@ -121,7 +121,56 @@ export default function InventoryManager({
   const [saving, setSaving]       = useState(false)
   const [error, setError]         = useState<string | null>(null)
 
+  // Restock modal
+  const [restockIngredient, setRestockIngredient] = useState<Ingredient | null>(null)
+  const [restockQty, setRestockQty]               = useState('')
+  const [restockNotes, setRestockNotes]           = useState('')
+  const [restocking, setRestocking]               = useState(false)
+  const [restockError, setRestockError]           = useState<string | null>(null)
+  const [restockSuccess, setRestockSuccess]       = useState(false)
+
   const supabase = createClient()
+
+  const openRestock = (ingredient: Ingredient) => {
+    setRestockIngredient(ingredient)
+    setRestockQty('')
+    setRestockNotes('')
+    setRestockError(null)
+    setRestockSuccess(false)
+  }
+
+  const closeRestock = () => {
+    setRestockIngredient(null)
+    setRestockQty('')
+    setRestockNotes('')
+    setRestockError(null)
+    setRestockSuccess(false)
+    setRestocking(false)
+  }
+
+  const handleRestock = async () => {
+    if (!restockIngredient || !restockQty) return
+    setRestocking(true)
+    setRestockError(null)
+    const res = await fetch('/api/inventory/restock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kitchen_id: kitchenId,
+        ingredient_id: restockIngredient.ingredient_id,
+        quantity_added: parseFloat(restockQty),
+        notes: restockNotes || null,
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      setRestockError(data.error || 'Restock failed. Please try again.')
+      setRestocking(false)
+    } else {
+      setRestockSuccess(true)
+      setTimeout(closeRestock, 1500)
+    }
+  }
 
   const criticalCount = items.filter(i => getStatus(i) === 'critical').length
   const lowCount      = items.filter(i => getStatus(i) === 'low').length
@@ -390,9 +439,17 @@ export default function InventoryManager({
                     <Cell mono right muted={item.lead_time_days === null}>{item.lead_time_days ?? '—'}</Cell>
                     <Cell mono right muted={item.minimum_cover_days === null}>{item.minimum_cover_days ?? '—'}</Cell>
                     <Cell>
-                      <div style={{ display: 'flex', gap: '6px' }}>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                         <button onClick={() => startEdit(item)} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '6px', border: '1px solid var(--color-border-mid)', background: 'transparent', color: 'var(--color-ink-2)', fontSize: '12px', cursor: 'pointer' }}>
                           <Pencil size={11} /> Edit
+                        </button>
+                        <button
+                          onClick={() => openRestock(item)}
+                          style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '6px', border: '1px solid var(--color-border-mid)', background: 'transparent', color: 'var(--color-ink-2)', fontSize: '12px', cursor: 'pointer' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-surface-2)' }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                        >
+                          <Plus size={11} /> Restock
                         </button>
                         <button onClick={() => handleDelete(item.ingredient_id)}
                           style={{ display: 'flex', alignItems: 'center', padding: '5px 8px', borderRadius: '6px', border: '1px solid transparent', background: 'transparent', color: 'var(--color-ink-3)', fontSize: '12px', cursor: 'pointer' }}
@@ -411,6 +468,77 @@ export default function InventoryManager({
           </table>
         </div>
       </div>
+
+      {/* Restock Modal */}
+      {restockIngredient && (
+        <div
+          onClick={closeRestock}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ width: '100%', maxWidth: '420px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', padding: '28px', display: 'flex', flexDirection: 'column', gap: '16px' }}
+          >
+            <div>
+              <h2 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '17px', color: 'var(--color-ink)', marginBottom: '2px' }}>Log Restock</h2>
+              <p style={{ fontSize: '13px', color: 'var(--color-ink-3)' }}>{restockIngredient.name} · {restockIngredient.unit}</p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-ink-3)' }}>
+                Quantity Added ({restockIngredient.unit}) *
+              </label>
+              <input
+                type="number"
+                step="0.001"
+                min="0.001"
+                value={restockQty}
+                onChange={e => setRestockQty(e.target.value)}
+                placeholder="e.g. 10"
+                autoFocus
+                style={{ padding: '8px 12px', fontSize: '14px', fontFamily: 'var(--font-mono)', border: '1px solid var(--color-border-mid)', borderRadius: '8px', background: 'var(--color-surface)', color: 'var(--color-ink)', outline: 'none' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-ink-3)' }}>
+                Notes (optional)
+              </label>
+              <textarea
+                value={restockNotes}
+                onChange={e => setRestockNotes(e.target.value)}
+                placeholder="Supplier, batch number, reason…"
+                rows={2}
+                style={{ padding: '8px 12px', fontSize: '13px', fontFamily: 'var(--font-body)', border: '1px solid var(--color-border-mid)', borderRadius: '8px', background: 'var(--color-surface)', color: 'var(--color-ink)', outline: 'none', resize: 'none' }}
+              />
+            </div>
+
+            {restockError && (
+              <p style={{ fontSize: '13px', color: '#ef4444', margin: 0 }}>{restockError}</p>
+            )}
+
+            {restockSuccess ? (
+              <p style={{ fontSize: '14px', color: 'var(--color-green)', fontWeight: 500, textAlign: 'center' }}>Restock logged successfully.</p>
+            ) : (
+              <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                <button
+                  onClick={closeRestock}
+                  style={{ flex: 1, height: '40px', borderRadius: '8px', border: '1px solid var(--color-border-mid)', background: 'transparent', color: 'var(--color-ink-2)', fontFamily: 'var(--font-body)', fontSize: '14px', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRestock}
+                  disabled={restocking || !restockQty}
+                  style={{ flex: 2, height: '40px', borderRadius: '8px', border: 'none', background: 'var(--color-accent)', color: '#fff', fontFamily: 'var(--font-body)', fontSize: '14px', fontWeight: 600, cursor: (restocking || !restockQty) ? 'not-allowed' : 'pointer', opacity: (restocking || !restockQty) ? 0.65 : 1 }}
+                >
+                  {restocking ? 'Logging…' : 'Log Restock'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* N8N Valuation Snapshot */}
       {latestValuation.length > 0 && (

@@ -6,6 +6,14 @@ import { MenuItem } from '@/lib/types'
 import { formatCurrency } from '@/lib/utils'
 import { Image as ImageIcon, Upload, X, Link } from 'lucide-react'
 
+type RecipeRow = {
+  recipe_id?: string
+  ingredient_id: string
+  name: string
+  unit: string
+  quantity_required: string
+}
+
 export function MenuBoard({ initialItems, kitchenId }: { initialItems: MenuItem[], kitchenId: string }) {
   const [items, setItems] = useState<MenuItem[]>(initialItems)
   const supabase = createClient()
@@ -29,12 +37,29 @@ export function MenuBoard({ initialItems, kitchenId }: { initialItems: MenuItem[
   const [uploadError, setUploadError]   = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Recipe (BOM) state
+  const [ingredients, setIngredients] = useState<{ ingredient_id: string; name: string; unit: string }[]>([])
+  const [existingRecipes, setExistingRecipes] = useState<RecipeRow[]>([])
+  const [pendingRecipes, setPendingRecipes] = useState<RecipeRow[]>([])
+  const [newIngId, setNewIngId] = useState('')
+  const [newQty, setNewQty] = useState('')
+
   // Revoke blob URL when it changes (prevent memory leaks)
   useEffect(() => {
     return () => {
       if (imagePreview?.startsWith('blob:')) URL.revokeObjectURL(imagePreview)
     }
   }, [imagePreview])
+
+  // Fetch ingredients once on mount
+  useEffect(() => {
+    supabase
+      .from('ingredients')
+      .select('ingredient_id, name, unit')
+      .eq('kitchen_id', kitchenId)
+      .order('name')
+      .then(({ data }) => { if (data) setIngredients(data) })
+  }, [kitchenId])
 
   const resetForm = () => {
     setEditingItem(null)
@@ -43,9 +68,13 @@ export function MenuBoard({ initialItems, kitchenId }: { initialItems: MenuItem[
     setImagePreview(null)
     setShowUrlInput(false)
     setUploadError(null)
+    setExistingRecipes([])
+    setPendingRecipes([])
+    setNewIngId('')
+    setNewQty('')
   }
 
-  const handleEditClick = (item: MenuItem) => {
+  const handleEditClick = async (item: MenuItem) => {
     setEditingItem(item)
     setFormData({
       name: item.name,
@@ -58,6 +87,47 @@ export function MenuBoard({ initialItems, kitchenId }: { initialItems: MenuItem[
     setImagePreview(item.image_url || null)
     setShowUrlInput(false)
     setUploadError(null)
+    setPendingRecipes([])
+    setNewIngId('')
+    setNewQty('')
+    try {
+      const { data } = await supabase
+        .from('recipes')
+        .select('recipe_id, ingredient_id, quantity_required, ingredients(name, unit)')
+        .eq('menu_item_id', item.item_id)
+      setExistingRecipes((data || []).map((r: any) => ({
+        recipe_id: r.recipe_id,
+        ingredient_id: r.ingredient_id,
+        name: r.ingredients?.name || '',
+        unit: r.ingredients?.unit || '',
+        quantity_required: String(r.quantity_required),
+      })))
+    } catch {
+      setExistingRecipes([])
+    }
+  }
+
+  const handleAddRecipeRow = () => {
+    if (!newIngId || !newQty) return
+    const ing = ingredients.find(i => i.ingredient_id === newIngId)
+    if (!ing) return
+    setPendingRecipes(prev => [...prev, {
+      ingredient_id: newIngId,
+      name: ing.name,
+      unit: ing.unit,
+      quantity_required: newQty,
+    }])
+    setNewIngId('')
+    setNewQty('')
+  }
+
+  const handleRemoveExistingRecipe = async (recipeId: string) => {
+    await supabase.from('recipes').delete().eq('recipe_id', recipeId)
+    setExistingRecipes(prev => prev.filter(r => r.recipe_id !== recipeId))
+  }
+
+  const handleRemovePendingRecipe = (idx: number) => {
+    setPendingRecipes(prev => prev.filter((_, i) => i !== idx))
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,10 +201,28 @@ export function MenuBoard({ initialItems, kitchenId }: { initialItems: MenuItem[
         const { data, error } = await supabase.from('menu_items').update(payload).eq('item_id', editingItem.item_id).select().single()
         if (error) throw error
         setItems(prev => prev.map(i => i.item_id === editingItem.item_id ? data as MenuItem : i))
+        if (pendingRecipes.length > 0) {
+          await supabase.from('recipes').insert(
+            pendingRecipes.map(r => ({
+              menu_item_id: editingItem.item_id,
+              ingredient_id: r.ingredient_id,
+              quantity_required: parseFloat(r.quantity_required),
+            }))
+          )
+        }
       } else {
         const { data, error } = await supabase.from('menu_items').insert(payload).select().single()
         if (error) throw error
         setItems(prev => [...prev, data as MenuItem])
+        if (pendingRecipes.length > 0) {
+          await supabase.from('recipes').insert(
+            pendingRecipes.map(r => ({
+              menu_item_id: (data as MenuItem).item_id,
+              ingredient_id: r.ingredient_id,
+              quantity_required: parseFloat(r.quantity_required),
+            }))
+          )
+        }
       }
 
       resetForm()
@@ -299,6 +387,79 @@ export function MenuBoard({ initialItems, kitchenId }: { initialItems: MenuItem[
               <label htmlFor="is_active_check" style={{ fontSize: '13px', cursor: 'pointer' }}>Item is available</label>
             </div>
 
+            {/* Recipe (Bill of Materials) */}
+            <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '14px', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>
+                Recipe (Bill of Materials)
+              </label>
+
+              {ingredients.length === 0 ? (
+                <p style={{ fontSize: '12px', color: 'var(--color-ink-3)', fontStyle: 'italic', margin: 0 }}>
+                  No ingredients found — add them in Inventory first.
+                </p>
+              ) : (
+                <>
+                  {existingRecipes.map(row => (
+                    <div key={row.recipe_id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', background: 'var(--color-surface-2)', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+                      <span style={{ flex: 1, fontSize: '13px', color: 'var(--color-ink)', fontFamily: 'var(--font-body)' }}>{row.name}</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-ink-2)', whiteSpace: 'nowrap' }}>{row.quantity_required} {row.unit}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveExistingRecipe(row.recipe_id!)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-3)', padding: '2px', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ))}
+
+                  {pendingRecipes.map((row, idx) => (
+                    <div key={`pending-${idx}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', background: 'var(--color-accent-bg)', borderRadius: '6px', border: '1px dashed var(--color-accent)' }}>
+                      <span style={{ flex: 1, fontSize: '13px', color: 'var(--color-ink)', fontFamily: 'var(--font-body)' }}>{row.name}</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-ink-2)', whiteSpace: 'nowrap' }}>{row.quantity_required} {row.unit}</span>
+                      <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0 }}>new</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePendingRecipe(idx)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-3)', padding: '2px', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ))}
+
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <select
+                      value={newIngId}
+                      onChange={e => setNewIngId(e.target.value)}
+                      style={{ flex: 1, padding: '5px 8px', fontSize: '13px', fontFamily: 'var(--font-body)', border: '1px solid var(--color-border-mid)', borderRadius: '6px', background: 'var(--color-surface)', color: newIngId ? 'var(--color-ink)' : 'var(--color-ink-3)', outline: 'none' }}
+                    >
+                      <option value="">Pick ingredient…</option>
+                      {ingredients.map(ing => (
+                        <option key={ing.ingredient_id} value={ing.ingredient_id}>{ing.name} ({ing.unit})</option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      step="0.001"
+                      value={newQty}
+                      onChange={e => setNewQty(e.target.value)}
+                      placeholder="Qty"
+                      style={{ width: '68px', padding: '5px 8px', fontSize: '13px', fontFamily: 'var(--font-mono)', border: '1px solid var(--color-border-mid)', borderRadius: '6px', background: 'var(--color-surface)', color: 'var(--color-ink)', outline: 'none' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddRecipeRow}
+                      disabled={!newIngId || !newQty}
+                      style={{ height: '31px', padding: '0 12px', borderRadius: '6px', border: 'none', background: 'var(--color-accent)', color: '#fff', fontSize: '12px', fontFamily: 'var(--font-body)', fontWeight: 600, cursor: (!newIngId || !newQty) ? 'not-allowed' : 'pointer', opacity: (!newIngId || !newQty) ? 0.5 : 1, whiteSpace: 'nowrap', flexShrink: 0 }}
+                    >
+                      + Add
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
             <button type="submit" className="btn-primary" disabled={isSubmitting} style={{ width: '100%', marginTop: '10px' }}>
               {isSubmitting ? (imageFile ? 'Uploading…' : 'Saving…') : (editingItem ? 'Save Changes' : 'Add Item')}
             </button>
@@ -364,7 +525,7 @@ export function MenuBoard({ initialItems, kitchenId }: { initialItems: MenuItem[
                   </span>
                 </div>
                 <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
-                  <button className="btn-outline" onClick={() => handleEditClick(item)} style={{ padding: '5px 12px', fontSize: '11px' }}>Edit</button>
+                  <button className="btn-outline" onClick={() => handleEditClick(item).catch(console.error)} style={{ padding: '5px 12px', fontSize: '11px' }}>Edit</button>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Status</span>
                     <input type="checkbox" checked={item.is_active} onChange={() => handleToggleActive(item.item_id, item.is_active)} style={{ margin: 0, cursor: 'pointer' }} />
