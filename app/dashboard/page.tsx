@@ -64,8 +64,9 @@ export default async function DashboardOverview() {
       .gte('created_at', thirtyDaysAgo.toISOString()),
     supabase
       .from('feedback')
-      .select('rating, created_at')
-      .eq('kitchen_id', kitchenId),
+      .select('rating, created_at, comment, customers(name)')
+      .eq('kitchen_id', kitchenId)
+      .order('created_at', { ascending: false }),
     isOwner
       ? supabase.from('notifications_log').select('*', { count: 'exact', head: true }).eq('kitchen_id', kitchenId).eq('status', 'pending')
       : Promise.resolve({ count: 0, data: null, error: null }),
@@ -311,7 +312,7 @@ export default async function DashboardOverview() {
                 </div>
 
                 {/* Rating distribution bars */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '28px' }}>
                   {[5, 4, 3, 2, 1].map(stars => {
                     const count = ratingDist[stars - 1]
                     const pct = (count / feedbackList.length) * 100
@@ -326,6 +327,39 @@ export default async function DashboardOverview() {
                       </div>
                     )
                   })}
+                </div>
+
+                {/* Latest 5 feedback entries */}
+                <div>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-ink-3)', marginBottom: '14px' }}>
+                    Recent Feedback
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {feedbackList.slice(0, 5).map((fb: any, idx: number) => {
+                      const name = fb.customers?.name || 'Guest'
+                      const initials = name.split(' ').map((w: string) => w[0]).join('').substring(0, 2).toUpperCase()
+                      return (
+                        <div key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', padding: '12px 14px', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)' }}>
+                          <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: '#fff' }}>{initials}</span>
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                              <span style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: '13px', color: 'var(--color-ink)' }}>{name}</span>
+                              <span style={{ color: 'var(--color-amber)', fontSize: '12px', letterSpacing: '1px' }}>
+                                {'★'.repeat(fb.rating)}{'☆'.repeat(5 - fb.rating)}
+                              </span>
+                            </div>
+                            {fb.comment && (
+                              <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--color-ink-2)', margin: 0, lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                                {fb.comment}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               </>
             )}

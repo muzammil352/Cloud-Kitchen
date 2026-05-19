@@ -533,6 +533,89 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
             )
           })
         )}
+        {/* ─── CUSTOMER FEEDBACK STRIP ──────────────────────── */}
+        {localFeedbacks.length > 0 && (
+          <div style={{ marginTop: '56px', paddingTop: '32px', borderTop: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '20px' }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', color: 'var(--text-primary)', margin: 0 }}>
+                What our customers say
+              </h2>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: '13px', color: 'var(--text-muted)' }}>
+                {localFeedbacks.length} review{localFeedbacks.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '14px' }}>
+              {localFeedbacks.slice(0, 6).map((fb, idx) => {
+                const name = fb.customers?.name || 'Guest'
+                const initials = name.split(' ').map((w: string) => w[0]).join('').substring(0, 2).toUpperCase()
+
+                // Rotating palette: accent · warm-dark · cream
+                const palettes = [
+                  { bg: 'var(--accent)',      text: '#fff',            sub: 'rgba(255,255,255,0.75)', star: '#fff',            avatarBg: 'rgba(255,255,255,0.2)', avatarText: '#fff' },
+                  { bg: '#2D2925',            text: '#F5F2ED',         sub: 'rgba(245,242,237,0.55)', star: '#FBBF24',         avatarBg: '#403830',              avatarText: '#F5F2ED' },
+                  { bg: '#FFF4EC',            text: 'var(--text-primary)', sub: 'var(--text-muted)',  star: 'var(--accent)',   avatarBg: '#FFE0CC',              avatarText: 'var(--accent)' },
+                  { bg: '#1A2A1A',            text: '#E8F5E8',         sub: 'rgba(232,245,232,0.6)', star: '#86EFAC',         avatarBg: '#2D402D',              avatarText: '#86EFAC' },
+                  { bg: '#F5F0FF',            text: '#2E1A6E',         sub: '#6B5BA6',               star: '#7C3AED',         avatarBg: '#DDD6FE',              avatarText: '#7C3AED' },
+                  { bg: '#1A1A2E',            text: '#E0E0FF',         sub: 'rgba(224,224,255,0.6)', star: '#818CF8',         avatarBg: '#2D2D4E',              avatarText: '#818CF8' },
+                ]
+                const p = palettes[idx % palettes.length]
+
+                return (
+                  <div
+                    key={fb.feedback_id}
+                    style={{
+                      background: p.bg,
+                      borderRadius: '18px',
+                      padding: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                      minHeight: '160px',
+                    }}
+                  >
+                    {/* Stars */}
+                    <div style={{ display: 'flex', gap: '3px' }}>
+                      {[1,2,3,4,5].map(s => (
+                        <Star
+                          key={s}
+                          size={14}
+                          strokeWidth={1.5}
+                          color={s <= fb.rating ? p.star : 'transparent'}
+                          fill={s <= fb.rating ? p.star : 'rgba(128,128,128,0.25)'}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Comment */}
+                    <p style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '14px',
+                      lineHeight: 1.6,
+                      color: p.text,
+                      margin: 0,
+                      flex: 1,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}>
+                      {fb.comment || `Rated ${fb.rating} out of 5 stars`}
+                    </p>
+
+                    {/* Author */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: p.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: '10px', color: p.avatarText }}>{initials}</span>
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: '13px', fontWeight: 600, color: p.sub }}>{name}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </main>
 
       {/* ─── REVIEWS SLIDE-OVER ────────────────────────────── */}
