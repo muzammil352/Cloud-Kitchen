@@ -152,7 +152,7 @@ a,button,.nbtn,.pbtn,[role=button]{cursor:url("data:image/svg+xml;base64,PHN2ZyB
 .proof-in{max-width:1200px;margin:0 auto}
 .proof-hl{font-family:'Fraunces',serif;font-style:italic;font-size:18px;
   color:rgba(255,255,255,.35);text-align:center;margin-bottom:48px}
-.proof-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.proof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .pstat{position:relative;text-align:center;padding:32px 20px}
 .pstat::before,.pstat::after{content:'';position:absolute;width:16px;height:16px;border-color:rgba(212,83,26,.3);border-style:solid}
 .pstat::before{top:0;left:0;border-width:1px 0 0 1px}
@@ -171,10 +171,12 @@ a,button,.nbtn,.pbtn,[role=button]{cursor:url("data:image/svg+xml;base64,PHN2ZyB
   font-size:clamp(28px,4vw,46px);color:var(--text);letter-spacing:-.02em;line-height:1.1}
 .sec-title .t2{display:block;font-family:'Fraunces',serif;font-weight:700;font-style:italic;
   font-size:clamp(28px,4vw,46px);color:var(--accent);letter-spacing:-.02em;line-height:1.1}
-.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.feat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:22px}
 .fcard{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--accent);
   border-radius:1.5rem;padding:28px 24px;overflow:hidden;
   display:flex;flex-direction:column;min-height:380px}
+.fcard:nth-child(-n+3){grid-column:span 2}
+.fcard:nth-child(n+4){grid-column:span 3}
 .fc-lbl{display:flex;align-items:center;gap:8px;margin-bottom:16px}
 .fc-dot{width:7px;height:7px;border-radius:50%;background:#C0392B;animation:ldot 1.5s infinite}
 .fc-ltxt{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
@@ -220,6 +222,52 @@ a,button,.nbtn,.pbtn,[role=button]{cursor:url("data:image/svg+xml;base64,PHN2ZyB
 .watyp span:nth-child(2){animation-delay:.2s}.watyp span:nth-child(3){animation-delay:.4s}
 @keyframes tydot{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
 
+/* ── STOREFRONT MOCKUP (Card 4) ── */
+.storemock{flex:1;display:flex;align-items:center;justify-content:center}
+.sbrow{width:100%;border-radius:10px;border:1px solid var(--border);overflow:hidden;background:var(--bg)}
+.sbrowbar{background:rgba(26,25,23,.07);padding:7px 10px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.sbrowdots{display:flex;gap:4px}.sbrowdots span{width:7px;height:7px;border-radius:50%;display:block}
+.sbrowdots span:nth-child(1){background:#ff5f57}.sbrowdots span:nth-child(2){background:#febc2e}.sbrowdots span:nth-child(3){background:#28c840}
+.sbrowurl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);background:rgba(255,255,255,.8);border-radius:4px;padding:3px 8px;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.sbrowbody{padding:10px 12px}
+.sbrowname{font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.sbrowbadge{font-family:'JetBrains Mono',monospace;font-size:8px;background:rgba(45,122,79,.12);color:var(--success);border:1px solid rgba(45,122,79,.2);border-radius:100px;padding:2px 8px}
+.sm-item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:10px;color:var(--text);opacity:0;transform:translateX(-8px);transition:opacity .4s,transform .4s}
+.sm-item.on{opacity:1;transform:translateX(0)}
+.sm-item:last-child{border-bottom:none}
+
+/* ── CRM VIS (Card 5) ── */
+.crmvis{flex:1;display:flex;flex-direction:column;gap:0}
+.crm-list{display:flex;flex-direction:column;gap:7px}
+.crm-card{display:flex;align-items:center;gap:10px;padding:9px 10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;opacity:0;transform:translateY(-10px);transition:opacity .4s,transform .4s}
+.crm-card.on{opacity:1;transform:translateY(0)}
+.crm-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.crm-name{font-size:12px;font-weight:600;color:var(--text)}
+.crm-tag{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:1px}
+.crm-badge{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border-radius:100px;background:rgba(212,83,26,.1);color:var(--accent);flex-shrink:0}
+
+/* ── SETUP VIS (Step 01) ── */
+.setup-vis{display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px}
+.setup-step{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;opacity:0;transform:translateX(-16px);transition:opacity .5s,transform .5s}
+.setup-step.on{opacity:1;transform:translateX(0)}
+.ss-icon{width:30px;height:30px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
+.ss-lbl{flex:1;font-size:12px;font-weight:500;color:var(--text)}
+.ss-check{width:18px;height:18px;border-radius:50%;background:var(--success);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;opacity:0;transform:scale(0);transition:opacity .3s,transform .3s .1s;flex-shrink:0}
+.setup-step.done .ss-check{opacity:1;transform:scale(1)}
+
+/* ── INTEL VIS (Step 06) ── */
+.intel-vis{display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px}
+.intel-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 14px;animation:intelp 4s ease-in-out infinite}
+.intel-card:nth-child(2){animation-delay:1.3s}.intel-card:nth-child(3){animation-delay:2.6s}
+@keyframes intelp{0%,100%{border-color:rgba(255,255,255,.08)}50%{border-color:rgba(99,102,241,.4)}}
+.intel-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px}
+.intel-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.intel-val{font-size:12px;font-weight:600;color:rgba(255,255,255,.85)}
+.intel-badge{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 7px;border-radius:100px}
+.intel-badge.up{background:rgba(45,122,79,.2);color:#5bbf8e}
+.intel-badge.warn{background:rgba(196,122,30,.2);color:#e8a43a}
+.intel-badge.info{background:rgba(99,102,241,.2);color:#a5b4fc}
+
 /* ── HOW IT WORKS ── */
 #how{position:relative}
 .how-intro{padding:120px 40px 0;max-width:1200px;margin:0 auto}
@@ -227,21 +275,24 @@ a,button,.nbtn,.pbtn,[role=button]{cursor:url("data:image/svg+xml;base64,PHN2ZyB
 .hpanel{position:sticky;top:0;height:100vh;display:flex;align-items:center;justify-content:center;padding:60px 40px}
 .hpanel:nth-child(1){z-index:1}.hpanel:nth-child(2){z-index:2}
 .hpanel:nth-child(3){z-index:3}.hpanel:nth-child(4){z-index:4}
+.hpanel:nth-child(5){z-index:5}.hpanel:nth-child(6){z-index:6}
 .hpin{max-width:880px;width:100%;background:var(--surface);border-radius:2rem;
   border:1px solid var(--border);box-shadow:0 20px 80px rgba(26,25,23,.08);
   padding:56px;display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;
   transform-origin:top center}
 .hpanel:nth-child(2) .hpin{background:var(--bg);border-color:rgba(26,25,23,.12)}
 .hpanel:nth-child(3) .hpin{background:rgba(212,83,26,.04);border-color:rgba(212,83,26,.14)}
-.hpanel:nth-child(4) .hpin{background:var(--dark);border-color:transparent}
+.hpanel:nth-child(4) .hpin{background:rgba(26,25,23,.03);border-color:var(--border)}
+.hpanel:nth-child(5) .hpin{background:var(--dark);border-color:transparent}
+.hpanel:nth-child(6) .hpin{background:#0A0F1E;border-color:rgba(99,102,241,.2)}
 .hstep{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);
   letter-spacing:.1em;margin-bottom:14px;display:block}
-.hpanel:nth-child(4) .hstep{color:rgba(212,83,26,.6)}
+.hpanel:nth-child(5) .hstep,.hpanel:nth-child(6) .hstep{color:rgba(212,83,26,.6)}
 .htitle{font-family:'Fraunces',serif;font-weight:700;font-style:italic;
   font-size:clamp(26px,3vw,40px);color:var(--text);letter-spacing:-.02em;line-height:1.1;margin-bottom:18px}
 .hbody{font-size:15px;line-height:1.7;color:var(--muted);max-width:340px}
-.hpanel:nth-child(4) .htitle{color:#fff}
-.hpanel:nth-child(4) .hbody{color:rgba(255,255,255,.45)}
+.hpanel:nth-child(5) .htitle,.hpanel:nth-child(6) .htitle{color:#fff}
+.hpanel:nth-child(5) .hbody,.hpanel:nth-child(6) .hbody{color:rgba(255,255,255,.45)}
 .hvis{display:flex;align-items:center;justify-content:center;min-height:180px}
 
 /* Panel 1 — flow */
@@ -453,12 +504,8 @@ section{scroll-margin-top:80px}
 <!-- ═══════════════════════════════════════════ PROOF -->
 <section id="proof" aria-labelledby="proof-hl">
   <div class="proof-in">
-    <p class="proof-hl" id="proof-hl">Trusted by kitchen owners in Karachi, Lahore &amp; Islamabad</p>
+    <p class="proof-hl" id="proof-hl">Trusted by kitchen owners all over Pakistan</p>
     <div class="proof-grid">
-      <div class="pstat" data-target="1200" data-suffix="+">
-        <span class="pnum">0</span>
-        <span class="plbl">Orders processed daily</span>
-      </div>
       <div class="pstat" data-target="2" data-prefix="&lt; " data-suffix="min">
         <span class="pnum">0</span>
         <span class="plbl">Avg. confirmation time</span>
@@ -533,6 +580,46 @@ section{scroll-margin-top:80px}
         </div>
       </div>
 
+      <!-- Card 4: Personalised Website -->
+      <div class="fcard">
+        <div class="fc-lbl">
+          <div class="fc-dot" style="background:#7C3AED;animation-delay:.9s" aria-hidden="true"></div>
+          <span class="fc-ltxt">Your Own Website</span>
+        </div>
+        <h3 class="fc-title">Personalised Menu Page</h3>
+        <div class="storemock">
+          <div class="sbrow">
+            <div class="sbrowbar">
+              <div class="sbrowdots"><span></span><span></span><span></span></div>
+              <div class="sbrowurl">kitchenos.app/<span id="sm-slug">burger-hub</span></div>
+            </div>
+            <div class="sbrowbody">
+              <div class="sbrowname">
+                <span id="sm-name">Burger Hub</span>
+                <span class="sbrowbadge">Open</span>
+              </div>
+              <div id="sm-items">
+                <div class="sm-item on"><span>Zinger Burger</span><span>Rs. 650</span></div>
+                <div class="sm-item on" style="transition-delay:.12s"><span>Crispy Fries</span><span>Rs. 280</span></div>
+                <div class="sm-item on" style="transition-delay:.24s"><span>Chicken Wrap</span><span>Rs. 420</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 5: CRM -->
+      <div class="fcard">
+        <div class="fc-lbl">
+          <div class="fc-dot" style="background:#0284C7;animation-delay:1.2s" aria-hidden="true"></div>
+          <span class="fc-ltxt">CRM &amp; Customer Intelligence</span>
+        </div>
+        <h3 class="fc-title">Know Your Customers</h3>
+        <div class="crmvis">
+          <div class="crm-list" id="crm-list"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -542,7 +629,7 @@ section{scroll-margin-top:80px}
   <div class="how-intro sec-in">
     <p class="sec-lbl">// THE LOOP</p>
     <div class="sec-title" id="how-hl">
-      <span class="t1">Four steps.</span>
+      <span class="t1">Six steps.</span>
       <span class="t2">One less thing to think about.</span>
     </div>
   </div>
@@ -552,6 +639,35 @@ section{scroll-margin-top:80px}
       <div class="hpin" id="hpin1">
         <div>
           <span class="hstep">// STEP 01</span>
+          <h3 class="htitle">You sign up. Your menu goes live.</h3>
+          <p class="hbody">Create your kitchen in minutes. Add your menu items, set your prices, and get a personalised storefront link — no developers, no design tools, no waiting.</p>
+        </div>
+        <div class="hvis" aria-hidden="true">
+          <div class="setup-vis">
+            <div class="setup-step" id="ss1">
+              <div class="ss-icon"><i data-lucide="user-plus" style="width:15px;height:15px"></i></div>
+              <span class="ss-lbl">Create your account</span>
+              <div class="ss-check">✓</div>
+            </div>
+            <div class="setup-step" id="ss2">
+              <div class="ss-icon"><i data-lucide="utensils-crossed" style="width:15px;height:15px"></i></div>
+              <span class="ss-lbl">Add your menu items</span>
+              <div class="ss-check">✓</div>
+            </div>
+            <div class="setup-step" id="ss3">
+              <div class="ss-icon"><i data-lucide="globe" style="width:15px;height:15px"></i></div>
+              <span class="ss-lbl">Go live instantly</span>
+              <div class="ss-check">✓</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hpanel" id="hp2">
+      <div class="hpin" id="hpin2">
+        <div>
+          <span class="hstep">// STEP 02</span>
           <h3 class="htitle">Customer orders.</h3>
           <p class="hbody">Customer places an order from your menu link. No app download needed. Works on any phone, any browser.</p>
         </div>
@@ -567,10 +683,10 @@ section{scroll-margin-top:80px}
       </div>
     </div>
 
-    <div class="hpanel" id="hp2">
-      <div class="hpin" id="hpin2">
+    <div class="hpanel" id="hp3">
+      <div class="hpin" id="hpin3">
         <div>
-          <span class="hstep">// STEP 02</span>
+          <span class="hstep">// STEP 03</span>
           <h3 class="htitle">You're notified instantly.</h3>
           <p class="hbody">You and your kitchen team get an instant alert — email and WhatsApp — with full order details. No refreshing.</p>
         </div>
@@ -585,10 +701,10 @@ section{scroll-margin-top:80px}
       </div>
     </div>
 
-    <div class="hpanel" id="hp3">
-      <div class="hpin" id="hpin3">
+    <div class="hpanel" id="hp4">
+      <div class="hpin" id="hpin4">
         <div>
-          <span class="hstep">// STEP 03</span>
+          <span class="hstep">// STEP 04</span>
           <h3 class="htitle">Kitchen confirms, stock adjusts.</h3>
           <p class="hbody">One click to confirm. Inventory deducted automatically based on your recipes. No spreadsheet needed.</p>
         </div>
@@ -603,10 +719,10 @@ section{scroll-margin-top:80px}
       </div>
     </div>
 
-    <div class="hpanel" id="hp4">
-      <div class="hpin" id="hpin4">
+    <div class="hpanel" id="hp5">
+      <div class="hpin" id="hpin5">
         <div>
-          <span class="hstep">// STEP 04</span>
+          <span class="hstep">// STEP 05</span>
           <h3 class="htitle">The loop closes itself.</h3>
           <p class="hbody">Feedback collected. Customer record updated. Win-back timer started. All without you doing anything.</p>
         </div>
@@ -629,6 +745,41 @@ section{scroll-margin-top:80px}
               </circle>
               <path id="cpath" d="M105,21 A84,84 0 1,1 104.99,21" fill="none"/>
             </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hpanel" id="hp6">
+      <div class="hpin" id="hpin6">
+        <div>
+          <span class="hstep">// STEP 06</span>
+          <h3 class="htitle">Your data works for you.</h3>
+          <p class="hbody">Beyond orders — a full intelligence layer. Bestsellers, customer lifetime value, reorder predictions, win-back campaigns. CRM built in, not bolted on.</p>
+        </div>
+        <div class="hvis" aria-hidden="true">
+          <div class="intel-vis">
+            <div class="intel-card">
+              <span class="intel-lbl">Bestseller · This Week</span>
+              <div class="intel-row">
+                <span class="intel-val">Zinger Burger</span>
+                <span class="intel-badge up">↑ 34%</span>
+              </div>
+            </div>
+            <div class="intel-card">
+              <span class="intel-lbl">Customer Retention</span>
+              <div class="intel-row">
+                <span class="intel-val">68% repeat</span>
+                <span class="intel-badge info">7 day window</span>
+              </div>
+            </div>
+            <div class="intel-card">
+              <span class="intel-lbl">Inventory Prediction</span>
+              <div class="intel-row">
+                <span class="intel-val">Reorder buns</span>
+                <span class="intel-badge warn">by Thursday</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -871,6 +1022,8 @@ lucide.createIcons();
     {inner:'hpin1',next:'hp2'},
     {inner:'hpin2',next:'hp3'},
     {inner:'hpin3',next:'hp4'},
+    {inner:'hpin4',next:'hp5'},
+    {inner:'hpin5',next:'hp6'},
   ];
   pins.forEach(({inner,next})=>{
     const el=document.getElementById(inner);
@@ -891,14 +1044,14 @@ lucide.createIcons();
   });
 })();
 
-/* ── STOCK VIS DRAIN (panel 3) ── */
+/* ── STOCK VIS DRAIN (panel 4) ── */
 (function(){
   if(window.innerWidth<=768)return;
   const el=document.getElementById('sv-o');
   if(!el)return;
   let w=28,going=false;
   ScrollTrigger.create({
-    trigger:'#hp3',
+    trigger:'#hp4',
     start:'top 65%',
     onEnter:()=>{
       if(going)return;going=true;
@@ -932,6 +1085,89 @@ lucide.createIcons();
   document.querySelectorAll('.pcard').forEach((c,i)=>{
     gsap.from(c,{scrollTrigger:{trigger:c,start:'top 88%'},opacity:0,y:28,duration:.7,delay:i*.12,ease:'power3.out'});
   });
+})();
+
+/* ── SETUP VIS ANIMATION ── */
+(function(){
+  function runSetup(){
+    ['ss1','ss2','ss3'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.classList.remove('on','done')}
+    });
+    const delays=[400,1300,2200];
+    ['ss1','ss2','ss3'].forEach((id,i)=>{
+      setTimeout(()=>{
+        const el=document.getElementById(id);
+        if(el){
+          el.classList.add('on');
+          setTimeout(()=>el.classList.add('done'),700);
+        }
+      },delays[i]);
+    });
+    setTimeout(runSetup,6000);
+  }
+  runSetup();
+})();
+
+/* ── STOREFRONT ROTATION ── */
+(function(){
+  const kitchens=[
+    {slug:'burger-hub',name:'Burger Hub',items:[['Zinger Burger','Rs. 650'],['Crispy Fries','Rs. 280'],['Chicken Wrap','Rs. 420']]},
+    {slug:'karachi-bites',name:'Karachi Bites',items:[['Chicken Biryani','Rs. 450'],['Seekh Kebab','Rs. 320'],['Raita','Rs. 80']]},
+    {slug:'spice-garden',name:'Spice Garden',items:[['Mutton Karahi','Rs. 950'],['Dal Makhani','Rs. 280'],['Naan','Rs. 60']]},
+  ];
+  let ki=0;
+  function update(){
+    const k=kitchens[ki%kitchens.length];ki++;
+    const slug=document.getElementById('sm-slug');
+    const name=document.getElementById('sm-name');
+    const itemsEl=document.getElementById('sm-items');
+    if(!slug||!name||!itemsEl)return;
+    slug.textContent=k.slug;
+    name.textContent=k.name;
+    itemsEl.innerHTML='';
+    k.items.forEach(([item,price],j)=>{
+      const d=document.createElement('div');
+      d.className='sm-item';
+      d.style.transitionDelay=(j*.14)+'s';
+      d.innerHTML=`<span>${item}</span><span>${price}</span>`;
+      itemsEl.appendChild(d);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('on')));
+    });
+  }
+  update();
+  setInterval(update,4000);
+})();
+
+/* ── CRM LIST ANIMATION ── */
+(function(){
+  const customers=[
+    {init:'AK',name:'Ali Khan',tag:'Loyal · 12 orders',badge:'VIP',color:'#D4531A'},
+    {init:'SB',name:'Sara Baig',tag:'3rd order this week',badge:'Active',color:'#2D7A4F'},
+    {init:'UM',name:'Umar Malik',tag:'Win-back · 18 days',badge:'Re-engage',color:'#C47A1E'},
+    {init:'NR',name:'Nadia Raza',tag:'New customer',badge:'New',color:'#7C3AED'},
+    {init:'TH',name:'Tariq Hassan',tag:'Loyal · 8 orders',badge:'VIP',color:'#D4531A'},
+  ];
+  const list=document.getElementById('crm-list');
+  if(!list)return;
+  let ci=0;
+  function addCard(){
+    const c=customers[ci%customers.length];ci++;
+    const el=document.createElement('div');
+    el.className='crm-card';
+    el.innerHTML=`<div class="crm-av" style="background:${c.color}">${c.init}</div><div class="crm-info"><div class="crm-name">${c.name}</div><div class="crm-tag">${c.tag}</div></div><div class="crm-badge">${c.badge}</div>`;
+    list.insertBefore(el,list.firstChild);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('on')));
+    const all=list.querySelectorAll('.crm-card');
+    if(all.length>4){
+      const last=all[all.length-1];
+      last.style.transition='opacity .3s,transform .3s';
+      last.style.opacity='0';last.style.transform='translateY(8px)';
+      setTimeout(()=>last.remove(),300);
+    }
+  }
+  customers.slice(0,3).forEach((_,i)=>setTimeout(addCard,i*350));
+  setInterval(addCard,2500);
 })();
 </script>
 </body>
