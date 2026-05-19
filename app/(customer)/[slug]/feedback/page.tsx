@@ -1,14 +1,18 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 
 function FeedbackForm() {
   const searchParams = useSearchParams()
+  const params = useParams()
+
   const orderId = searchParams.get('order_id')
-  const kitchenId = searchParams.get('kitchen')
+  // Accept ?kitchen= query param OR fall back to the slug in the path
+  // (N8N sends /{kitchen_id}/feedback?order_id=... without a kitchen param)
+  const kitchenId = searchParams.get('kitchen') || (params?.slug as string) || null
 
   const [rating, setRating] = useState<number>(0)
   const [comment, setComment] = useState('')
