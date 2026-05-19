@@ -121,6 +121,27 @@ export default function InventoryManager({
   const [saving, setSaving]       = useState(false)
   const [error, setError]         = useState<string | null>(null)
 
+  // Daily summary trigger
+  const [summaryTriggering, setSummaryTriggering] = useState(false)
+  const [summaryMsg, setSummaryMsg] = useState<{ text: string; ok: boolean } | null>(null)
+
+  const handleDailySummary = async () => {
+    setSummaryTriggering(true)
+    setSummaryMsg(null)
+    const res = await fetch('/api/inventory/daily-summary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kitchen_id: kitchenId }),
+    })
+    const data = await res.json().catch(() => ({}))
+    setSummaryMsg(res.ok
+      ? { text: 'Daily summary triggered.', ok: true }
+      : { text: data.error || 'Failed to trigger.', ok: false }
+    )
+    setSummaryTriggering(false)
+    setTimeout(() => setSummaryMsg(null), 4000)
+  }
+
   // Restock modal
   const [restockIngredient, setRestockIngredient] = useState<Ingredient | null>(null)
   const [restockQty, setRestockQty]               = useState('')
@@ -258,14 +279,44 @@ export default function InventoryManager({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
       {/* Header */}
-      <div>
-        <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '22px', color: 'var(--color-ink)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Package size={22} style={{ color: 'var(--color-accent)' }} />
-          Inventory
-        </h1>
-        <p style={{ fontSize: '14px', color: 'var(--color-ink-3)', marginTop: '4px' }}>
-          Track stock levels, set reorder thresholds, and manage your ingredient list.
-        </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
+        <div>
+          <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '22px', color: 'var(--color-ink)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Package size={22} style={{ color: 'var(--color-accent)' }} />
+            Inventory
+          </h1>
+          <p style={{ fontSize: '14px', color: 'var(--color-ink-3)', marginTop: '4px' }}>
+            Track stock levels, set reorder thresholds, and manage your ingredient list.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
+          <button
+            onClick={handleDailySummary}
+            disabled={summaryTriggering}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '7px',
+              height: '38px', padding: '0 18px', borderRadius: '100px',
+              border: '1px solid var(--color-border-mid)',
+              background: 'var(--color-surface)',
+              color: 'var(--color-ink)', fontFamily: 'var(--font-body)',
+              fontSize: '13px', fontWeight: 500,
+              cursor: summaryTriggering ? 'not-allowed' : 'pointer',
+              opacity: summaryTriggering ? 0.65 : 1,
+              transition: 'all var(--transition)',
+            }}
+            onMouseEnter={e => { if (!summaryTriggering) e.currentTarget.style.background = 'var(--color-surface-2)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-surface)' }}
+          >
+            <RefreshCw size={14} strokeWidth={1.5} style={{ animation: summaryTriggering ? 'spin 1s linear infinite' : 'none' }} />
+            {summaryTriggering ? 'Running…' : 'Daily Summary'}
+          </button>
+          {summaryMsg && (
+            <span style={{ fontSize: '12px', fontFamily: 'var(--font-body)', color: summaryMsg.ok ? 'var(--color-green)' : '#ef4444' }}>
+              {summaryMsg.text}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Summary cards */}
