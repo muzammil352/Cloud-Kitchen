@@ -53,11 +53,11 @@ export default async function InventoryPage() {
   ])
 
   // Enrich low_stock / supplier_message approvals with supplier details from ingredients table
-  const ingredientIds = [...new Set(
+  const ingredientIds = Array.from(new Set(
     (inventoryApprovals || [])
       .map(a => (a.payload as any)?.ingredient_id)
       .filter(Boolean)
-  )]
+  ))
   const { data: ingredientDetails } = ingredientIds.length > 0
     ? await supabase.from('ingredients').select('ingredient_id, supplier_name').in('ingredient_id', ingredientIds)
     : { data: [] }

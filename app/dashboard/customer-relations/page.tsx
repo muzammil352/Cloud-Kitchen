@@ -40,11 +40,11 @@ export default async function CustomerRelationsPage() {
   ])
 
   // Enrich approvals with actual customer details from the customers table
-  const customerIds = [...new Set(
+  const customerIds = Array.from(new Set(
     (crmApprovals || [])
       .map(a => (a.payload as any)?.customer_id)
       .filter(Boolean)
-  )]
+  ))
   const { data: customers } = customerIds.length > 0
     ? await supabase.from('customers').select('customer_id, name, phone, email').in('customer_id', customerIds)
     : { data: [] }
