@@ -7,11 +7,11 @@ import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
 
 const navItems = [
+  { name: 'Storefront',   href: '/storefront',            icon: Store },
   { name: 'Dashboard',    href: '/dashboard',             icon: LayoutDashboard },
   { name: 'Orders',       href: '/dashboard/orders',      icon: ShoppingBag },
   { name: 'Kitchen',      href: '/dashboard/kitchen-board', icon: ChefHat },
   { name: 'Menu',         href: '/dashboard/menu',        icon: UtensilsCrossed },
-  { name: 'Storefront',   href: '/storefront',            icon: Store },
   { name: 'Customers',    href: '/dashboard/customers',   icon: Users },
   { name: 'Intelligence', href: '/dashboard/intelligence',       icon: Brain         },
   { name: 'CRM',          href: '/dashboard/customer-relations', icon: HeartHandshake },
