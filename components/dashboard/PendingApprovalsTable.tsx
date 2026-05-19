@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { NotificationLog } from '@/lib/types'
 import { timeAgo } from '@/lib/utils'
-import { Check, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Check, X, ChevronLeft, ChevronRight, CheckCheck, Trash2 } from 'lucide-react'
 
 const TYPE_META: Record<string, { label: string; border: string; color: string; bg: string }> = {
   win_back:         { label: 'Win-Back',    border: 'var(--color-blue)',   color: 'var(--color-blue)',   bg: 'var(--color-blue-bg)'   },
@@ -25,12 +25,10 @@ function buildMessage(type: string, payload: Record<string, any>): string {
 
 function getNameContact(type: string, payload: Record<string, any>): { name: string; contact: string } {
   if (['win_back', 'upsell'].includes(type)) {
-    const contact = payload.customer_phone || payload.customer_email || '—'
-    return { name: payload.customer_name || '—', contact }
+    return { name: payload.customer_name || '—', contact: payload.customer_phone || payload.customer_email || '—' }
   }
   if (['low_stock', 'supplier_message'].includes(type)) {
-    const contact = payload.supplier_phone || payload.supplier_email || '—'
-    return { name: payload.supplier_name || '—', contact }
+    return { name: payload.supplier_name || '—', contact: payload.supplier_phone || payload.supplier_email || '—' }
   }
   return { name: '—', contact: '—' }
 }
@@ -46,13 +44,16 @@ export function PendingApprovalsTable({
   kitchenId: string
   title?: string
 }) {
-  const [approvals, setApprovals] = useState<NotificationLog[]>(initialApprovals)
-  const [processing, setProcessing] = useState<Set<string>>(new Set())
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [page, setPage] = useState(0)
+  const [approvals,   setApprovals]   = useState<NotificationLog[]>(initialApprovals)
+  const [processing,  setProcessing]  = useState<Set<string>>(new Set())
+  const [errors,      setErrors]      = useState<Record<string, string>>({})
+  const [selected,    setSelected]    = useState<Set<string>>(new Set())
+  const [activeFilter, setActiveFilter] = useState<string | null>(null)
+  const [page,        setPage]        = useState(0)
 
   const supabase = createClient()
 
+  // Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel(`approvals-table-${kitchenId}-${title}`)
@@ -69,6 +70,28 @@ export function PendingApprovalsTable({
     return () => { supabase.removeChannel(channel) }
   }, [kitchenId, title])
 
+  // Which types exist in the data (for filter tabs)
+  const presentTypes = Array.from(new Set(approvals.map(a => a.type))).filter(t => t in TYPE_META)
+
+  // Filtered list
+  const filtered = activeFilter ? approvals.filter(a => a.type === activeFilter) : approvals
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const pageItems  = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
+
+  // Reset page when filter changes
+  const applyFilter = (f: string | null) => { setActiveFilter(f); setPage(0); setSelected(new Set()) }
+
+  // Remove from list and clean up selection
+  const removeIds = (ids: string[]) => {
+    setApprovals(prev => {
+      const next = prev.filter(a => !ids.includes(a.notification_id))
+      setPage(p => Math.min(p, Math.max(0, Math.ceil(next.filter(a => activeFilter ? a.type === activeFilter : true).length / PAGE_SIZE) - 1)))
+      return next
+    })
+    setSelected(prev => { const s = new Set(prev); ids.forEach(id => s.delete(id)); return s })
+  }
+
   const handleAction = async (item: NotificationLog, action: 'approve' | 'reject') => {
     const id = item.notification_id
     setProcessing(prev => new Set(prev).add(id))
@@ -81,11 +104,7 @@ export function PendingApprovalsTable({
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error ?? `Failed (${res.status})`)
-      setApprovals(prev => {
-        const next = prev.filter(a => a.notification_id !== id)
-        setPage(p => Math.min(p, Math.max(0, Math.ceil(next.length / PAGE_SIZE) - 1)))
-        return next
-      })
+      removeIds([id])
     } catch (err: any) {
       setErrors(prev => ({ ...prev, [id]: err.message }))
     } finally {
@@ -93,12 +112,47 @@ export function PendingApprovalsTable({
     }
   }
 
-  const totalPages = Math.ceil(approvals.length / PAGE_SIZE)
-  const pageItems = approvals.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
+  const handleBulk = async (action: 'approve' | 'reject') => {
+    const ids = Array.from(selected)
+    if (ids.length === 0) return
+    const items = approvals.filter(a => ids.includes(a.notification_id))
+    const tokens = items.map(a => a.approval_token)
+
+    ids.forEach(id => setProcessing(prev => new Set(prev).add(id)))
+    try {
+      const res = await fetch('/api/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tokens, action }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error ?? `Failed (${res.status})`)
+      removeIds(ids)
+    } catch (err: any) {
+      ids.forEach(id => setErrors(prev => ({ ...prev, [id]: err.message })))
+    } finally {
+      ids.forEach(id => setProcessing(prev => { const s = new Set(prev); s.delete(id); return s }))
+    }
+  }
+
+  const toggleSelect = (id: string) => setSelected(prev => {
+    const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s
+  })
+
+  const allPageSelected = pageItems.length > 0 && pageItems.every(i => selected.has(i.notification_id))
+  const toggleSelectAll = () => {
+    if (allPageSelected) {
+      setSelected(prev => { const s = new Set(prev); pageItems.forEach(i => s.delete(i.notification_id)); return s })
+    } else {
+      setSelected(prev => { const s = new Set(prev); pageItems.forEach(i => s.add(i.notification_id)); return s })
+    }
+  }
 
   return (
     <div style={{ marginTop: '48px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+
+      {/* Header row */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <h2 style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '16px', color: 'var(--color-ink)' }}>{title}</h2>
           {approvals.length > 0 && (
@@ -107,38 +161,80 @@ export function PendingApprovalsTable({
             </span>
           )}
         </div>
+
+        {/* Pagination */}
         {totalPages > 1 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <button
-              onClick={() => setPage(p => Math.max(0, p - 1))}
-              disabled={page === 0}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', border: '1px solid var(--color-border-mid)', background: 'transparent', cursor: page === 0 ? 'not-allowed' : 'pointer', opacity: page === 0 ? 0.4 : 1 }}
-            >
+            <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', border: '1px solid var(--color-border-mid)', background: 'transparent', cursor: page === 0 ? 'not-allowed' : 'pointer', opacity: page === 0 ? 0.4 : 1 }}>
               <ChevronLeft size={14} color="var(--color-ink-2)" />
             </button>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-ink-3)', padding: '0 8px' }}>
-              {page + 1} / {totalPages}
-            </span>
-            <button
-              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-              disabled={page >= totalPages - 1}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', border: '1px solid var(--color-border-mid)', background: 'transparent', cursor: page >= totalPages - 1 ? 'not-allowed' : 'pointer', opacity: page >= totalPages - 1 ? 0.4 : 1 }}
-            >
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-ink-3)', padding: '0 8px' }}>{page + 1} / {totalPages}</span>
+            <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', border: '1px solid var(--color-border-mid)', background: 'transparent', cursor: page >= totalPages - 1 ? 'not-allowed' : 'pointer', opacity: page >= totalPages - 1 ? 0.4 : 1 }}>
               <ChevronRight size={14} color="var(--color-ink-2)" />
             </button>
           </div>
         )}
       </div>
 
-      {approvals.length === 0 ? (
+      {/* Filter tabs */}
+      {presentTypes.length > 1 && (
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <button
+            onClick={() => applyFilter(null)}
+            style={{ height: '30px', padding: '0 12px', borderRadius: '100px', border: `1px solid ${activeFilter === null ? 'var(--color-accent)' : 'var(--color-border-mid)'}`, background: activeFilter === null ? 'var(--color-accent-bg)' : 'transparent', color: activeFilter === null ? 'var(--color-accent)' : 'var(--color-ink-2)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: activeFilter === null ? 600 : 400, cursor: 'pointer', transition: 'all 150ms' }}
+          >
+            All <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', marginLeft: '4px' }}>{approvals.length}</span>
+          </button>
+          {presentTypes.map(type => {
+            const meta = TYPE_META[type]
+            const isActive = activeFilter === type
+            const count = approvals.filter(a => a.type === type).length
+            return (
+              <button key={type} onClick={() => applyFilter(type)}
+                style={{ height: '30px', padding: '0 12px', borderRadius: '100px', border: `1px solid ${isActive ? meta.border : 'var(--color-border-mid)'}`, background: isActive ? meta.bg : 'transparent', color: isActive ? meta.color : 'var(--color-ink-2)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: isActive ? 600 : 400, cursor: 'pointer', transition: 'all 150ms' }}
+              >
+                {meta.label} <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', marginLeft: '4px' }}>{count}</span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Bulk action toolbar */}
+      {selected.size > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', marginBottom: '10px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', position: 'sticky', top: '16px', zIndex: 10 }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 500, color: 'var(--color-ink)', flex: 1 }}>
+            {selected.size} selected
+          </span>
+          <button onClick={() => handleBulk('approve')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '32px', padding: '0 14px', borderRadius: '100px', border: 'none', background: 'var(--color-accent)', color: '#fff', fontSize: '13px', fontWeight: 500, fontFamily: 'var(--font-body)', cursor: 'pointer' }}>
+            <CheckCheck size={14} /> Approve Selected
+          </button>
+          <button onClick={() => handleBulk('reject')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '32px', padding: '0 14px', borderRadius: '100px', border: '1px solid #ef4444', background: 'transparent', color: '#ef4444', fontSize: '13px', fontWeight: 500, fontFamily: 'var(--font-body)', cursor: 'pointer' }}>
+            <Trash2 size={14} /> Reject Selected
+          </button>
+          <button onClick={() => setSelected(new Set())}
+            style={{ height: '32px', padding: '0 12px', borderRadius: '100px', border: '1px solid var(--color-border-mid)', background: 'transparent', color: 'var(--color-ink-3)', fontSize: '13px', fontFamily: 'var(--font-body)', cursor: 'pointer' }}>
+            Clear
+          </button>
+        </div>
+      )}
+
+      {filtered.length === 0 ? (
         <div style={{ padding: '32px 24px', textAlign: 'center', borderRadius: 'var(--radius-lg)', border: '1.5px dashed var(--color-border)', color: 'var(--color-ink-3)', fontSize: '13px' }}>
-          No pending actions right now.
+          {approvals.length === 0 ? 'No pending actions right now.' : 'No items match this filter.'}
         </div>
       ) : (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <table>
             <thead>
               <tr>
+                <th style={{ width: '40px', paddingLeft: '16px' }}>
+                  <input type="checkbox" checked={allPageSelected} onChange={toggleSelectAll} style={{ width: 'auto', cursor: 'pointer', accentColor: 'var(--color-accent)' }} />
+                </th>
                 <th>Type</th>
                 <th>Name</th>
                 <th>Contact</th>
@@ -153,20 +249,21 @@ export function PendingApprovalsTable({
                 const payload = item.payload as Record<string, any>
                 const { name, contact } = getNameContact(item.type, payload)
                 const isProcessing = processing.has(item.notification_id)
+                const isSelected   = selected.has(item.notification_id)
                 const err = errors[item.notification_id]
                 return (
-                  <tr key={item.notification_id} style={{ opacity: isProcessing ? 0.5 : 1, transition: 'opacity 200ms' }}>
+                  <tr key={item.notification_id}
+                    style={{ opacity: isProcessing ? 0.5 : 1, transition: 'opacity 200ms', background: isSelected ? 'var(--color-accent-bg)' : undefined }}>
+                    <td style={{ paddingLeft: '16px', width: '40px' }}>
+                      <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(item.notification_id)} style={{ width: 'auto', cursor: 'pointer', accentColor: 'var(--color-accent)' }} />
+                    </td>
                     <td style={{ width: '110px' }}>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600, padding: '3px 8px', borderRadius: '100px', background: meta.bg, color: meta.color, border: `1px solid ${meta.border}`, whiteSpace: 'nowrap' }}>
                         {meta.label}
                       </span>
                     </td>
-                    <td style={{ fontWeight: 500, fontSize: '13px', color: 'var(--color-ink)', whiteSpace: 'nowrap' }}>
-                      {name}
-                    </td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-ink-3)', whiteSpace: 'nowrap' }}>
-                      {contact}
-                    </td>
+                    <td style={{ fontWeight: 500, fontSize: '13px', color: 'var(--color-ink)', whiteSpace: 'nowrap' }}>{name}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-ink-3)', whiteSpace: 'nowrap' }}>{contact}</td>
                     <td>
                       <span style={{ fontSize: '13px', color: 'var(--color-ink)', lineHeight: 1.5 }}>
                         {buildMessage(item.type, payload)}
@@ -178,19 +275,13 @@ export function PendingApprovalsTable({
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                        <button
-                          onClick={() => handleAction(item, 'reject')}
-                          disabled={isProcessing}
-                          style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '6px', border: '1px solid var(--color-border-mid)', background: 'transparent', color: 'var(--color-ink-2)', fontSize: '12px', cursor: isProcessing ? 'not-allowed' : 'pointer' }}
-                        >
+                        <button onClick={() => handleAction(item, 'reject')} disabled={isProcessing}
+                          style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '6px', border: '1px solid var(--color-border-mid)', background: 'transparent', color: 'var(--color-ink-2)', fontSize: '12px', cursor: isProcessing ? 'not-allowed' : 'pointer' }}>
                           <X size={12} /> Reject
                         </button>
-                        <button
-                          onClick={() => handleAction(item, 'approve')}
-                          disabled={isProcessing}
+                        <button onClick={() => handleAction(item, 'approve')} disabled={isProcessing}
                           className="btn-primary"
-                          style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', padding: '5px 10px', cursor: isProcessing ? 'not-allowed' : 'pointer' }}
-                        >
+                          style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', padding: '5px 10px', cursor: isProcessing ? 'not-allowed' : 'pointer' }}>
                           <Check size={12} /> Approve
                         </button>
                       </div>
