@@ -392,16 +392,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
 .pfnote{text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;
   color:var(--muted);margin-top:44px;padding-top:32px;border-top:1px solid var(--border)}
 
-/* ── FOOTER ── */
-#footer{background:var(--dark);border-radius:3rem 3rem 0 0;padding:48px 40px 28px;margin-top:-1px}
-.fin{max-width:800px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:32px}
+/* ── CREDIT STRIP (above footer) ── */
+#credit{background:var(--dark);padding:56px 40px 0;text-align:center}
 .fglass{
-  width:100%;background:rgba(255,255,255,.06);
-  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  border:1px solid rgba(255,255,255,.13);border-radius:1.5rem;
-  padding:36px 40px;text-align:center}
-.fbrand-name{font-size:18px;font-weight:700;color:#fff;margin-bottom:10px;display:block;font-family:'DM Sans',sans-serif;letter-spacing:-.02em}
-.fbrand-tag{font-size:13px;color:rgba(255,255,255,.45);line-height:1.7}
+  max-width:520px;margin:0 auto;
+  background:var(--bg);
+  border:1px solid rgba(26,25,23,.1);
+  border-radius:1.5rem;padding:32px 36px;text-align:center}
+.fbrand-name{font-size:17px;font-weight:700;color:var(--text);margin-bottom:10px;display:block;font-family:'DM Sans',sans-serif;letter-spacing:-.02em}
+.fbrand-tag{font-size:13px;color:var(--muted);line-height:1.7}
+
+/* ── FOOTER ── */
+#footer{background:var(--dark);border-radius:3rem 3rem 0 0;padding:24px 40px 28px;margin-top:0}
+.fin{max-width:1200px;margin:0 auto}
 .fctitle{font-size:12px;font-weight:600;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:18px}
 .flinks{list-style:none;display:flex;flex-direction:column;gap:11px}
 .flinks a{font-size:14px;color:rgba(255,255,255,.4);text-decoration:none;transition:color .2s}
@@ -988,14 +991,18 @@ section{scroll-margin-top:80px}
   </div>
 </section>
 
+<!-- ═══════════════════════════════════════════ CREDIT -->
+<div id="credit">
+  <div class="fglass">
+    <span class="fbrand-name" id="f-brand">KitchenOS</span>
+    <p class="fbrand-tag">Built with 💖 as final course project for the course Generative AI for Businesses and Automations (DISC 472) in the Lahore University of Management Sciences. Spring 2026.</p>
+  </div>
+</div>
+
 <!-- ═══════════════════════════════════════════ FOOTER -->
 <footer id="footer" aria-labelledby="f-brand">
   <div class="fin">
-    <div class="fglass">
-      <span class="fbrand-name" id="f-brand">KitchenOS</span>
-      <p class="fbrand-tag">Built with 💖 as final course project for the course Generative AI for Businesses and Automations (DISC 472) in the Lahore University of Management Sciences. Spring 2026.</p>
-    </div>
-    <div class="fbot" style="width:100%;border-top:1px solid rgba(255,255,255,.07);padding-top:20px">
+    <div class="fbot">
       <p class="fcopy">© 2025 KitchenOS. Built in Pakistan.</p>
       <div class="fstatus"><div class="sdot" aria-hidden="true"></div><span>All systems operational</span></div>
     </div>
