@@ -7,7 +7,7 @@ import { useCart } from './CartContext'
 import { CartSheet } from './CartSheet'
 import { MenuItem, Kitchen } from '@/lib/types'
 import { formatCurrency, timeAgo } from '@/lib/utils'
-import { ArrowLeft, ShoppingBag, Search, Heart, Plus, Star, X, Package } from 'lucide-react'
+import { ArrowLeft, ShoppingBag, Search, Heart, Plus, Star, X, Package, ChevronLeft, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface Feedback {
@@ -56,6 +56,7 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
   const [reviewSubmitting, setReviewSubmitting] = useState(false)
   const [reviewError, setReviewError] = useState<string | null>(null)
   const [reviewSuccess, setReviewSuccess] = useState(false)
+  const [reviewPage, setReviewPage] = useState(0)
   const mainRef = useRef<HTMLDivElement>(null)
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
 
@@ -120,6 +121,7 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
         }, ...prev])
         setReviewText('')
         setReviewRating(0)
+        setReviewPage(0)
         setReviewSuccess(true)
         setTimeout(() => setReviewSuccess(false), 3000)
       }
@@ -534,88 +536,138 @@ export function MenuPageClient({ kitchen, menuItems, feedbacks, categories, slug
           })
         )}
         {/* ─── CUSTOMER FEEDBACK STRIP ──────────────────────── */}
-        {localFeedbacks.length > 0 && (
-          <div style={{ marginTop: '56px', paddingTop: '32px', borderTop: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '20px' }}>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', color: 'var(--text-primary)', margin: 0 }}>
-                What our customers say
-              </h2>
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: '13px', color: 'var(--text-muted)' }}>
-                {localFeedbacks.length} review{localFeedbacks.length !== 1 ? 's' : ''}
-              </span>
-            </div>
+        {localFeedbacks.length > 0 && (() => {
+          const REVIEW_PAGE_SIZE = 6
+          const reviewTotalPages = Math.ceil(localFeedbacks.length / REVIEW_PAGE_SIZE)
+          const pageReviews = localFeedbacks.slice(reviewPage * REVIEW_PAGE_SIZE, reviewPage * REVIEW_PAGE_SIZE + REVIEW_PAGE_SIZE)
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '14px' }}>
-              {localFeedbacks.slice(0, 6).map((fb, idx) => {
-                const name = fb.customers?.name || 'Guest'
-                const initials = name.split(' ').map((w: string) => w[0]).join('').substring(0, 2).toUpperCase()
+          const palettes = [
+            { bg: 'var(--accent)',      text: '#fff',                sub: 'rgba(255,255,255,0.75)', star: '#fff',            avatarBg: 'rgba(255,255,255,0.2)', avatarText: '#fff' },
+            { bg: '#2D2925',            text: '#F5F2ED',             sub: 'rgba(245,242,237,0.55)', star: '#FBBF24',         avatarBg: '#403830',              avatarText: '#F5F2ED' },
+            { bg: '#FFF4EC',            text: 'var(--text-primary)', sub: 'var(--text-muted)',      star: 'var(--accent)',   avatarBg: '#FFE0CC',              avatarText: 'var(--accent)' },
+            { bg: '#1A2A1A',            text: '#E8F5E8',             sub: 'rgba(232,245,232,0.6)',  star: '#86EFAC',         avatarBg: '#2D402D',              avatarText: '#86EFAC' },
+            { bg: '#F5F0FF',            text: '#2E1A6E',             sub: '#6B5BA6',                star: '#7C3AED',         avatarBg: '#DDD6FE',              avatarText: '#7C3AED' },
+            { bg: '#1A1A2E',            text: '#E0E0FF',             sub: 'rgba(224,224,255,0.6)',  star: '#818CF8',         avatarBg: '#2D2D4E',              avatarText: '#818CF8' },
+          ]
 
-                // Rotating palette: accent · warm-dark · cream
-                const palettes = [
-                  { bg: 'var(--accent)',      text: '#fff',            sub: 'rgba(255,255,255,0.75)', star: '#fff',            avatarBg: 'rgba(255,255,255,0.2)', avatarText: '#fff' },
-                  { bg: '#2D2925',            text: '#F5F2ED',         sub: 'rgba(245,242,237,0.55)', star: '#FBBF24',         avatarBg: '#403830',              avatarText: '#F5F2ED' },
-                  { bg: '#FFF4EC',            text: 'var(--text-primary)', sub: 'var(--text-muted)',  star: 'var(--accent)',   avatarBg: '#FFE0CC',              avatarText: 'var(--accent)' },
-                  { bg: '#1A2A1A',            text: '#E8F5E8',         sub: 'rgba(232,245,232,0.6)', star: '#86EFAC',         avatarBg: '#2D402D',              avatarText: '#86EFAC' },
-                  { bg: '#F5F0FF',            text: '#2E1A6E',         sub: '#6B5BA6',               star: '#7C3AED',         avatarBg: '#DDD6FE',              avatarText: '#7C3AED' },
-                  { bg: '#1A1A2E',            text: '#E0E0FF',         sub: 'rgba(224,224,255,0.6)', star: '#818CF8',         avatarBg: '#2D2D4E',              avatarText: '#818CF8' },
-                ]
-                const p = palettes[idx % palettes.length]
+          const getPageNumbers = (current: number, total: number): (number | '...')[] => {
+            if (total <= 7) return Array.from({ length: total }, (_, i) => i)
+            if (current < 4) return [0, 1, 2, 3, 4, '...', total - 1]
+            if (current > total - 5) return [0, '...', total - 5, total - 4, total - 3, total - 2, total - 1]
+            return [0, '...', current - 1, current, current + 1, '...', total - 1]
+          }
 
-                return (
-                  <div
-                    key={fb.feedback_id}
-                    style={{
-                      background: p.bg,
-                      borderRadius: '18px',
-                      padding: '20px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '12px',
-                      minHeight: '160px',
-                    }}
-                  >
-                    {/* Stars */}
-                    <div style={{ display: 'flex', gap: '3px' }}>
-                      {[1,2,3,4,5].map(s => (
-                        <Star
-                          key={s}
-                          size={14}
-                          strokeWidth={1.5}
-                          color={s <= fb.rating ? p.star : 'transparent'}
-                          fill={s <= fb.rating ? p.star : 'rgba(128,128,128,0.25)'}
-                        />
-                      ))}
-                    </div>
+          return (
+            <div style={{ marginTop: '56px', paddingTop: '32px', borderTop: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '20px' }}>
+                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', color: 'var(--text-primary)', margin: 0 }}>
+                  What our customers say
+                </h2>
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: '13px', color: 'var(--text-muted)' }}>
+                  {localFeedbacks.length} review{localFeedbacks.length !== 1 ? 's' : ''}
+                </span>
+              </div>
 
-                    {/* Comment */}
-                    <p style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '14px',
-                      lineHeight: 1.6,
-                      color: p.text,
-                      margin: 0,
-                      flex: 1,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                    }}>
-                      {fb.comment || `Rated ${fb.rating} out of 5 stars`}
-                    </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '14px' }}>
+                {pageReviews.map((fb, idx) => {
+                  const name = fb.customers?.name || 'Guest'
+                  const initials = name.split(' ').map((w: string) => w[0]).join('').substring(0, 2).toUpperCase()
+                  const p = palettes[idx % palettes.length]
 
-                    {/* Author */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: p.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: '10px', color: p.avatarText }}>{initials}</span>
+                  return (
+                    <div
+                      key={fb.feedback_id}
+                      style={{ background: p.bg, borderRadius: '18px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', minHeight: '160px' }}
+                    >
+                      <div style={{ display: 'flex', gap: '3px' }}>
+                        {[1,2,3,4,5].map(s => (
+                          <Star key={s} size={14} strokeWidth={1.5}
+                            color={s <= fb.rating ? p.star : 'transparent'}
+                            fill={s <= fb.rating ? p.star : 'rgba(128,128,128,0.25)'}
+                          />
+                        ))}
                       </div>
-                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: '13px', fontWeight: 600, color: p.sub }}>{name}</span>
+                      <p style={{ fontFamily: 'var(--font-body)', fontSize: '14px', lineHeight: 1.6, color: p.text, margin: 0, flex: 1, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {fb.comment || `Rated ${fb.rating} out of 5 stars`}
+                      </p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: p.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: '10px', color: p.avatarText }}>{initials}</span>
+                        </div>
+                        <span style={{ fontFamily: 'var(--font-ui)', fontSize: '13px', fontWeight: 600, color: p.sub }}>{name}</span>
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
+
+              {/* Pagination */}
+              {reviewTotalPages > 1 && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginTop: '28px' }}>
+                  {/* Prev arrow */}
+                  <button
+                    onClick={() => setReviewPage(p => Math.max(0, p - 1))}
+                    disabled={reviewPage === 0}
+                    style={{
+                      width: '36px', height: '36px', borderRadius: '10px',
+                      border: '1px solid var(--border)', background: 'var(--surface)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: reviewPage === 0 ? 'not-allowed' : 'pointer',
+                      opacity: reviewPage === 0 ? 0.35 : 1,
+                      transition: 'background var(--transition)',
+                    }}
+                    onMouseEnter={e => { if (reviewPage > 0) e.currentTarget.style.background = 'var(--border)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface)' }}
+                  >
+                    <ChevronLeft size={16} strokeWidth={1.5} color="var(--text-secondary)" />
+                  </button>
+
+                  {/* Page numbers */}
+                  {getPageNumbers(reviewPage, reviewTotalPages).map((pg, i) =>
+                    pg === '...' ? (
+                      <span key={`dots-${i}`} style={{ width: '36px', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--text-muted)' }}>…</span>
+                    ) : (
+                      <button
+                        key={pg}
+                        onClick={() => setReviewPage(pg as number)}
+                        style={{
+                          width: '36px', height: '36px', borderRadius: '10px',
+                          border: pg === reviewPage ? 'none' : '1px solid var(--border)',
+                          background: pg === reviewPage ? 'var(--accent)' : 'var(--surface)',
+                          color: pg === reviewPage ? '#fff' : 'var(--text-secondary)',
+                          fontFamily: 'var(--font-ui)', fontSize: '13px', fontWeight: pg === reviewPage ? 600 : 400,
+                          cursor: 'pointer', transition: 'background var(--transition)',
+                        }}
+                        onMouseEnter={e => { if (pg !== reviewPage) e.currentTarget.style.background = 'var(--border)' }}
+                        onMouseLeave={e => { if (pg !== reviewPage) e.currentTarget.style.background = 'var(--surface)' }}
+                      >
+                        {(pg as number) + 1}
+                      </button>
+                    )
+                  )}
+
+                  {/* Next arrow */}
+                  <button
+                    onClick={() => setReviewPage(p => Math.min(reviewTotalPages - 1, p + 1))}
+                    disabled={reviewPage >= reviewTotalPages - 1}
+                    style={{
+                      width: '36px', height: '36px', borderRadius: '10px',
+                      border: '1px solid var(--border)', background: 'var(--surface)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: reviewPage >= reviewTotalPages - 1 ? 'not-allowed' : 'pointer',
+                      opacity: reviewPage >= reviewTotalPages - 1 ? 0.35 : 1,
+                      transition: 'background var(--transition)',
+                    }}
+                    onMouseEnter={e => { if (reviewPage < reviewTotalPages - 1) e.currentTarget.style.background = 'var(--border)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface)' }}
+                  >
+                    <ChevronRight size={16} strokeWidth={1.5} color="var(--text-secondary)" />
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          )
+        })()}
       </main>
 
       {/* ─── REVIEWS SLIDE-OVER ────────────────────────────── */}

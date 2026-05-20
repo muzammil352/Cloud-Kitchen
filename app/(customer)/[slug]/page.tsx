@@ -28,7 +28,6 @@ export default async function MenuPage({ params }: { params: { slug: string } })
     .select('*, customers(name)')
     .eq('kitchen_id', kitchen.kitchen_id)
     .order('created_at', { ascending: false })
-    .limit(6)
 
   const categories = Array.from(new Set((menuItems || []).map(item => item.category)))
 
