@@ -85,22 +85,25 @@ export function SettingsForm({ kitchen }: { kitchen: any }) {
       delivery_radius_km: parseFloat(formData.delivery_radius_km as any),
     }
 
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from('kitchens')
       .update({
         name:           formData.name,
         phone:          formData.phone,
         city:           formData.city,
-        slug:           formData.slug || null,
+        slug:           formData.slug.trim() || null,
         welcome_banner: formData.welcome_banner || null,
         avatar_url:     avatarUrl || null,
         settings:       updatedSettings,
       })
       .eq('kitchen_id', kitchen.kitchen_id)
+      .select('kitchen_id')
 
     setIsSubmitting(false)
     if (error) {
       alert('Failed to update settings: ' + error.message)
+    } else if (!count && count !== null) {
+      alert('Settings were not saved — you may not have permission to update this kitchen.')
     } else {
       setSuccess(true)
       setTimeout(() => {
