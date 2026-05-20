@@ -27,7 +27,10 @@ export default async function MenuPage({ params }: { params: { slug: string } })
     .from('feedback')
     .select('*, customers(name)')
     .eq('kitchen_id', kitchen.kitchen_id)
-    .order('created_at', { ascending: false })
+
+  const sortedFeedbacks = (feedbacks || []).sort(
+    (a, b) => (b.comment?.length ?? 0) - (a.comment?.length ?? 0)
+  )
 
   const categories = Array.from(new Set((menuItems || []).map(item => item.category)))
 
@@ -48,7 +51,7 @@ export default async function MenuPage({ params }: { params: { slug: string } })
     <MenuPageClient
       kitchen={kitchen}
       menuItems={(menuItems || []) as MenuItem[]}
-      feedbacks={(feedbacks || []) as any[]}
+      feedbacks={sortedFeedbacks as any[]}
       categories={categories}
       slug={params.slug}
       showDashboardButton={showDashboardButton}
