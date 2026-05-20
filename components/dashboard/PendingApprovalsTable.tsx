@@ -24,15 +24,6 @@ function buildMessage(type: string, payload: Record<string, any>): string {
   return payload.message || 'Action requires approval.'
 }
 
-function getNameContact(type: string, payload: Record<string, any>): { name: string; contact: string } {
-  if (['win_back', 'upsell'].includes(type)) {
-    return { name: payload.customer_name || '—', contact: payload.customer_phone || payload.customer_email || '—' }
-  }
-  if (['low_stock', 'supplier_message'].includes(type)) {
-    return { name: payload.supplier_name || '—', contact: payload.supplier_phone || payload.supplier_email || '—' }
-  }
-  return { name: '—', contact: '—' }
-}
 
 const PAGE_SIZE = 10
 
@@ -242,8 +233,6 @@ export function PendingApprovalsTable({
                   <input type="checkbox" checked={allPageSelected} onChange={toggleSelectAll} style={{ width: 'auto', cursor: 'pointer', accentColor: 'var(--color-accent)' }} />
                 </th>
                 <th>Type</th>
-                <th>Name</th>
-                <th>Contact</th>
                 <th>Action</th>
                 <th style={{ textAlign: 'right' }}>Age</th>
                 <th style={{ width: '140px' }}></th>
@@ -253,7 +242,6 @@ export function PendingApprovalsTable({
               {pageItems.map(item => {
                 const meta = TYPE_META[item.type] ?? { label: item.type, border: 'var(--color-border)', color: 'var(--color-ink-3)', bg: 'var(--color-surface-2)' }
                 const payload = item.payload as Record<string, any>
-                const { name, contact } = getNameContact(item.type, payload)
                 const isProcessing = processing.has(item.notification_id)
                 const isSelected   = selected.has(item.notification_id)
                 const err = errors[item.notification_id]
@@ -268,8 +256,6 @@ export function PendingApprovalsTable({
                         {meta.label}
                       </span>
                     </td>
-                    <td style={{ fontWeight: 500, fontSize: '13px', color: 'var(--color-ink)', whiteSpace: 'nowrap' }}>{name}</td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-ink-3)', whiteSpace: 'nowrap' }}>{contact}</td>
                     <td>
                       <span style={{ fontSize: '13px', color: 'var(--color-ink)', lineHeight: 1.5 }}>
                         {buildMessage(item.type, payload)}
