@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Brain, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, PlusCircle, CheckCircle2, Package, FileText, AlertCircle } from 'lucide-react'
+import { Brain, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, PlusCircle, CheckCircle2, Package, FileText } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 type MenuCostingReport = {
@@ -31,8 +31,6 @@ type StockoutReport = {
   report_id: string; kitchen_id: string; ingredient_count: number
   critical_count: number; warning_count: number; owner_report: string; computed_at: string
 }
-
-const PDF_LIMIT_REACHED = true
 
 const TRIGGER_BUTTONS = [
   { id: 'margin_analysis',      label: 'Margin Analysis',        icon: TrendingUp    },
@@ -203,28 +201,6 @@ export default function IntelligenceBoard({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
-      {/* PDF limit warning banner */}
-      {PDF_LIMIT_REACHED && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '12px',
-          padding: '14px 18px',
-          background: '#fff1f2',
-          border: '1px solid #fca5a5',
-          borderLeft: '4px solid #ef4444',
-          borderRadius: 'var(--radius-md)',
-        }}>
-          <AlertCircle size={18} style={{ color: '#ef4444', flexShrink: 0 }} />
-          <div style={{ flex: 1 }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '14px', fontWeight: 600, color: '#b91c1c' }}>
-              PDF generation API tokens reached free limits.
-            </span>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: '#ef4444', marginLeft: '6px' }}>
-              Please update your plan to continue generating reports.
-            </span>
-          </div>
-        </div>
-      )}
-
       {/* Header & Trigger Buttons */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
@@ -241,18 +217,18 @@ export default function IntelligenceBoard({
             <button
               key={rt.id}
               onClick={() => handleTrigger(rt.id)}
-              disabled={isTriggering !== null || PDF_LIMIT_REACHED}
+              disabled={isTriggering !== null}
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
                 height: '36px', padding: '0 16px', borderRadius: '100px',
                 border: '1px solid var(--color-border-mid)', background: 'var(--color-surface)',
                 color: 'var(--color-ink)', fontFamily: 'var(--font-body)', fontSize: '13px',
-                fontWeight: 500, cursor: (isTriggering || PDF_LIMIT_REACHED) ? 'not-allowed' : 'pointer',
-                opacity: PDF_LIMIT_REACHED ? 0.45 : (isTriggering && isTriggering !== rt.id ? 0.5 : 1),
+                fontWeight: 500, cursor: isTriggering ? 'not-allowed' : 'pointer',
+                opacity: isTriggering && isTriggering !== rt.id ? 0.5 : 1,
                 transition: 'all var(--transition)',
               }}
-              onMouseEnter={e => { if (!isTriggering && !PDF_LIMIT_REACHED) e.currentTarget.style.background = 'var(--color-surface-2)' }}
-              onMouseLeave={e => { if (!PDF_LIMIT_REACHED) e.currentTarget.style.background = 'var(--color-surface)' }}
+              onMouseEnter={e => !isTriggering && (e.currentTarget.style.background = 'var(--color-surface-2)')}
+              onMouseLeave={e => !isTriggering && (e.currentTarget.style.background = 'var(--color-surface)')}
             >
               {isTriggering === rt.id ? <RefreshCw size={14} className="animate-spin" /> : <rt.icon size={14} />}
               Generate {rt.label}
